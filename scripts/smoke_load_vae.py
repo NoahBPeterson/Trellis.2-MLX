@@ -55,6 +55,27 @@ def main() -> int:
     print(f"vertices: shape={tuple(vertices.feats.shape)} range=[{float(vertices.feats.min()):.3f}, {float(vertices.feats.max()):.3f}]")
     print(f"intersected: shape={tuple(intersected.feats.shape)} mean={float(intersected.feats.mean()):.3f}")
     print(f"quad_lerp: shape={tuple(quad_lerp.feats.shape)} mean={float(quad_lerp.feats.mean()):.3f}")
+
+    # Dual-grid mesh extraction
+    from trellis2_mlx.postprocess.dual_grid import flexible_dual_grid_to_mesh
+    coords_np = np.asarray(vertices.coords)[:, 1:]  # drop batch col
+    dv_np = np.asarray(vertices.feats)
+    inter_np = np.asarray(intersected.feats) > 0.5
+    quad_np = np.asarray(quad_lerp.feats)
+    grid_size = 512
+    aabb = (np.array([-0.5, -0.5, -0.5]), np.array([0.5, 0.5, 0.5]))
+    t0 = time.time()
+    V, F_ = flexible_dual_grid_to_mesh(coords_np, dv_np, inter_np, quad_np, aabb, [grid_size] * 3)
+    t1 = time.time()
+    print(f"\ndual-grid extraction: {t1 - t0:.2f}s")
+    print(f"mesh: vertices={V.shape[0]}, faces={F_.shape[0]}")
+    if V.shape[0] > 0 and F_.shape[0] > 0:
+        print(f"vertex world-space range: x=[{V[:,0].min():.3f}, {V[:,0].max():.3f}] y=[{V[:,1].min():.3f}, {V[:,1].max():.3f}] z=[{V[:,2].min():.3f}, {V[:,2].max():.3f}]")
+        # Save a random-cond smoke GLB (will be geometric noise, just proves the path works)
+        from trellis2_mlx.postprocess.glb_export import export_mesh_glb
+        out_path = ROOT / "artifacts" / "smoke_vae_mesh.glb"
+        export_mesh_glb(V, F_, out_path)
+        print(f"wrote {out_path} ({out_path.stat().st_size / 1024:.1f} KB)")
     return 0
 
 
