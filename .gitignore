@@ -22,6 +22,7 @@ dist/
 .venv/
 .env
 .DS_Store
+.python-version
 
 # HF download cache
 **/.cache/huggingface/

@@ -1,0 +1,34 @@
+[project]
+name = "trellis2-mlx"
+version = "0.1.0.dev0"
+description = "MLX port of Microsoft TRELLIS.2-4B image-to-3D model for Apple Silicon"
+requires-python = ">=3.11,<3.13"
+dependencies = [
+    "mlx>=0.18.0",
+    "numpy>=1.26",
+    "safetensors>=0.4",
+    "huggingface-hub>=0.35",
+    "torch>=2.8",
+    "easydict>=1.13",
+    "tqdm>=4.66",
+    "pillow>=10.0",
+]
+
+[project.optional-dependencies]
+postprocess = [
+    "trimesh>=4.0",
+    "xatlas>=0.0.9",
+]
+image-cond = [
+    "transformers>=4.50",
+]
+dev = [
+    "pytest>=8.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["trellis2_mlx"]
