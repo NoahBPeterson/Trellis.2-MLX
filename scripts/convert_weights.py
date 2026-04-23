@@ -34,14 +34,18 @@ DTYPE_MAP = {
 
 
 def translate_key(k: str) -> str:
-    """Apply Sequential->layers rewrites."""
-    # t_embedder.mlp.N.* -> t_embedder.mlp.layers.N.*
+    """Apply Sequential->layers rewrites.
+
+    MLX's `nn.Sequential` stores children under `.layers[i]` rather than
+    indexed directly like torch's `nn.Sequential`. Every upstream path that
+    indexes into a Sequential needs `layers` injected.
+    """
+    # Any `.mlp.<digit>.` (DiT FeedForward's inner Sequential, VAE ConvNeXt's mlp)
+    k = re.sub(r"\.mlp\.(\d+)\.", r".mlp.layers.\1.", k)
+    # Leading t_embedder.mlp.N.*
     k = re.sub(r"^t_embedder\.mlp\.(\d+)\.", r"t_embedder.mlp.layers.\1.", k)
-    # adaLN_modulation.N.*
-    k = re.sub(r"^adaLN_modulation\.(\d+)\.", r"adaLN_modulation.layers.\1.", k)
-    k = re.sub(r"^(blocks\.\d+\.)adaLN_modulation\.(\d+)\.", r"\1adaLN_modulation.layers.\2.", k)
-    # blocks.I.mlp.mlp.N.* (FeedForwardNet wraps Sequential at .mlp)
-    k = re.sub(r"^(blocks\.\d+\.)mlp\.mlp\.(\d+)\.", r"\1mlp.mlp.layers.\2.", k)
+    # adaLN_modulation.N.*  (root and per-block)
+    k = re.sub(r"(^|\.)adaLN_modulation\.(\d+)\.", r"\1adaLN_modulation.layers.\2.", k)
     return k
 
 
