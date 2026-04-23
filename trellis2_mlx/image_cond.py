@@ -42,12 +42,21 @@ class DinoV3FeatureExtractor:
 
     def _extract_features(self, image: torch.Tensor) -> torch.Tensor:
         """Manual layer stack (matches upstream extract_features) for the last
-        pre-norm hidden states, then an affine-less final LayerNorm."""
+        pre-norm hidden states, then an affine-less final LayerNorm.
+
+        transformers 5.x moved the layer list to `model.model.layer` (encoder
+        wrapping), but falls back to `model.layer` on older versions.
+        """
         image = image.to(self.model.embeddings.patch_embeddings.weight.dtype)
         hidden_states = self.model.embeddings(image, bool_masked_pos=None)
         position_embeddings = self.model.rope_embeddings(image)
-        for layer_module in self.model.layer:
+        layer_iter = getattr(self.model, "layer", None)
+        if layer_iter is None:
+            layer_iter = self.model.model.layer  # transformers >= 5
+        for layer_module in layer_iter:
             hidden_states = layer_module(hidden_states, position_embeddings=position_embeddings)
+            if isinstance(hidden_states, tuple):
+                hidden_states = hidden_states[0]
         return F.layer_norm(hidden_states, hidden_states.shape[-1:])
 
     @torch.no_grad()
