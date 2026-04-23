@@ -46,6 +46,9 @@ def translate_key(k: str) -> str:
     k = re.sub(r"^t_embedder\.mlp\.(\d+)\.", r"t_embedder.mlp.layers.\1.", k)
     # adaLN_modulation.N.*  (root and per-block)
     k = re.sub(r"(^|\.)adaLN_modulation\.(\d+)\.", r"\1adaLN_modulation.layers.\2.", k)
+    # SS decoder's Sequential containers
+    k = re.sub(r"^middle_block\.(\d+)\.", r"middle_block.layers.\1.", k)
+    k = re.sub(r"^out_layer\.(\d+)\.", r"out_layer.layers.\1.", k)
     return k
 
 
@@ -68,6 +71,16 @@ def convert_shard(src: Path, dst: Path) -> dict:
                 arr = mx.array(t.float().numpy()).astype(mx.bfloat16)
             else:
                 arr = mx.array(t.numpy())
+            # Dense torch Conv3d weights are (Co, Ci, Kd, Kh, Kw); MLX expects
+            # (Co, Kd, Kh, Kw, Ci). Sparse conv weights upstream are already in
+            # the MLX layout — we detect by shape pattern.
+            shape = tuple(t.shape)
+            if (
+                len(shape) == 5
+                and shape[-3:] == (3, 3, 3)
+                and shape[1] != 3
+            ):
+                arr = arr.transpose(0, 2, 3, 4, 1)
             new_key = translate_key(key)
             tensors[new_key] = arr
             bijection.append({"src": key, "dst": new_key, "shape": list(t.shape), "dtype": dt})
