@@ -1,0 +1,27 @@
+# Upstream sources (cloned, not our code)
+upstream/
+
+# Downloaded torch weights (reproducible via hf download)
+weights/
+weights-trellis1/
+
+# Large converted weights — managed by HF Hub + git-lfs separately
+ckpts/*.safetensors
+ckpts/*.bijection.json
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+*.egg-info/
+build/
+dist/
+
+# Dev scratch
+.venv/
+.env
+.DS_Store
+
+# HF download cache
+**/.cache/huggingface/

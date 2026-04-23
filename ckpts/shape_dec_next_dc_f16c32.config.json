@@ -1,0 +1,24 @@
+{
+    "name": "FlexiDualGridVaeDecoder",
+    "args": {
+        "resolution": 256,
+        "model_channels": [1024, 512, 256, 128, 64],
+        "latent_channels": 32,
+        "num_blocks": [4, 16, 8, 4, 0],
+        "block_type": [
+            "SparseConvNeXtBlock3d",
+            "SparseConvNeXtBlock3d",
+            "SparseConvNeXtBlock3d",
+            "SparseConvNeXtBlock3d",
+            "SparseConvNeXtBlock3d"
+        ],
+        "up_block_type": [
+            "SparseResBlockC2S3d",
+            "SparseResBlockC2S3d",
+            "SparseResBlockC2S3d",
+            "SparseResBlockC2S3d"
+        ],
+        "block_args": [{}, {}, {}, {}, {}],
+        "use_fp16": true
+    }
+}

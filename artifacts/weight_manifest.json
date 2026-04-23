@@ -1,0 +1,5862 @@
+{
+  "weights/ckpts/shape_dec_next_dc_f16c32_fp16.safetensors": {
+    "metadata": {},
+    "tensors": {
+      "blocks.0.0.conv.bias": {
+        "shape": [
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.0.0.conv.weight": {
+        "shape": [
+          1024,
+          3,
+          3,
+          3,
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.0.0.mlp.0.bias": {
+        "shape": [
+          4096
+        ],
+        "dtype": "F16"
+      },
+      "blocks.0.0.mlp.0.weight": {
+        "shape": [
+          4096,
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.0.0.mlp.2.bias": {
+        "shape": [
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.0.0.mlp.2.weight": {
+        "shape": [
+          1024,
+          4096
+        ],
+        "dtype": "F16"
+      },
+      "blocks.0.0.norm.bias": {
+        "shape": [
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.0.0.norm.weight": {
+        "shape": [
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.0.1.conv.bias": {
+        "shape": [
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.0.1.conv.weight": {
+        "shape": [
+          1024,
+          3,
+          3,
+          3,
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.0.1.mlp.0.bias": {
+        "shape": [
+          4096
+        ],
+        "dtype": "F16"
+      },
+      "blocks.0.1.mlp.0.weight": {
+        "shape": [
+          4096,
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.0.1.mlp.2.bias": {
+        "shape": [
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.0.1.mlp.2.weight": {
+        "shape": [
+          1024,
+          4096
+        ],
+        "dtype": "F16"
+      },
+      "blocks.0.1.norm.bias": {
+        "shape": [
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.0.1.norm.weight": {
+        "shape": [
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.0.2.conv.bias": {
+        "shape": [
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.0.2.conv.weight": {
+        "shape": [
+          1024,
+          3,
+          3,
+          3,
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.0.2.mlp.0.bias": {
+        "shape": [
+          4096
+        ],
+        "dtype": "F16"
+      },
+      "blocks.0.2.mlp.0.weight": {
+        "shape": [
+          4096,
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.0.2.mlp.2.bias": {
+        "shape": [
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.0.2.mlp.2.weight": {
+        "shape": [
+          1024,
+          4096
+        ],
+        "dtype": "F16"
+      },
+      "blocks.0.2.norm.bias": {
+        "shape": [
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.0.2.norm.weight": {
+        "shape": [
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.0.3.conv.bias": {
+        "shape": [
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.0.3.conv.weight": {
+        "shape": [
+          1024,
+          3,
+          3,
+          3,
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.0.3.mlp.0.bias": {
+        "shape": [
+          4096
+        ],
+        "dtype": "F16"
+      },
+      "blocks.0.3.mlp.0.weight": {
+        "shape": [
+          4096,
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.0.3.mlp.2.bias": {
+        "shape": [
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.0.3.mlp.2.weight": {
+        "shape": [
+          1024,
+          4096
+        ],
+        "dtype": "F16"
+      },
+      "blocks.0.3.norm.bias": {
+        "shape": [
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.0.3.norm.weight": {
+        "shape": [
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.0.4.conv1.bias": {
+        "shape": [
+          4096
+        ],
+        "dtype": "F16"
+      },
+      "blocks.0.4.conv1.weight": {
+        "shape": [
+          4096,
+          3,
+          3,
+          3,
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.0.4.conv2.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.0.4.conv2.weight": {
+        "shape": [
+          512,
+          3,
+          3,
+          3,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.0.4.norm1.bias": {
+        "shape": [
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.0.4.norm1.weight": {
+        "shape": [
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.0.4.to_subdiv.bias": {
+        "shape": [
+          8
+        ],
+        "dtype": "F16"
+      },
+      "blocks.0.4.to_subdiv.weight": {
+        "shape": [
+          8,
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.0.conv.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.0.conv.weight": {
+        "shape": [
+          512,
+          3,
+          3,
+          3,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.0.mlp.0.bias": {
+        "shape": [
+          2048
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.0.mlp.0.weight": {
+        "shape": [
+          2048,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.0.mlp.2.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.0.mlp.2.weight": {
+        "shape": [
+          512,
+          2048
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.0.norm.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.0.norm.weight": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.1.conv.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.1.conv.weight": {
+        "shape": [
+          512,
+          3,
+          3,
+          3,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.1.mlp.0.bias": {
+        "shape": [
+          2048
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.1.mlp.0.weight": {
+        "shape": [
+          2048,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.1.mlp.2.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.1.mlp.2.weight": {
+        "shape": [
+          512,
+          2048
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.1.norm.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.1.norm.weight": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.10.conv.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.10.conv.weight": {
+        "shape": [
+          512,
+          3,
+          3,
+          3,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.10.mlp.0.bias": {
+        "shape": [
+          2048
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.10.mlp.0.weight": {
+        "shape": [
+          2048,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.10.mlp.2.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.10.mlp.2.weight": {
+        "shape": [
+          512,
+          2048
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.10.norm.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.10.norm.weight": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.11.conv.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.11.conv.weight": {
+        "shape": [
+          512,
+          3,
+          3,
+          3,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.11.mlp.0.bias": {
+        "shape": [
+          2048
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.11.mlp.0.weight": {
+        "shape": [
+          2048,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.11.mlp.2.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.11.mlp.2.weight": {
+        "shape": [
+          512,
+          2048
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.11.norm.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.11.norm.weight": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.12.conv.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.12.conv.weight": {
+        "shape": [
+          512,
+          3,
+          3,
+          3,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.12.mlp.0.bias": {
+        "shape": [
+          2048
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.12.mlp.0.weight": {
+        "shape": [
+          2048,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.12.mlp.2.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.12.mlp.2.weight": {
+        "shape": [
+          512,
+          2048
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.12.norm.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.12.norm.weight": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.13.conv.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.13.conv.weight": {
+        "shape": [
+          512,
+          3,
+          3,
+          3,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.13.mlp.0.bias": {
+        "shape": [
+          2048
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.13.mlp.0.weight": {
+        "shape": [
+          2048,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.13.mlp.2.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.13.mlp.2.weight": {
+        "shape": [
+          512,
+          2048
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.13.norm.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.13.norm.weight": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.14.conv.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.14.conv.weight": {
+        "shape": [
+          512,
+          3,
+          3,
+          3,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.14.mlp.0.bias": {
+        "shape": [
+          2048
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.14.mlp.0.weight": {
+        "shape": [
+          2048,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.14.mlp.2.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.14.mlp.2.weight": {
+        "shape": [
+          512,
+          2048
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.14.norm.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.14.norm.weight": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.15.conv.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.15.conv.weight": {
+        "shape": [
+          512,
+          3,
+          3,
+          3,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.15.mlp.0.bias": {
+        "shape": [
+          2048
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.15.mlp.0.weight": {
+        "shape": [
+          2048,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.15.mlp.2.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.15.mlp.2.weight": {
+        "shape": [
+          512,
+          2048
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.15.norm.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.15.norm.weight": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.16.conv1.bias": {
+        "shape": [
+          2048
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.16.conv1.weight": {
+        "shape": [
+          2048,
+          3,
+          3,
+          3,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.16.conv2.bias": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.16.conv2.weight": {
+        "shape": [
+          256,
+          3,
+          3,
+          3,
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.16.norm1.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.16.norm1.weight": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.16.to_subdiv.bias": {
+        "shape": [
+          8
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.16.to_subdiv.weight": {
+        "shape": [
+          8,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.2.conv.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.2.conv.weight": {
+        "shape": [
+          512,
+          3,
+          3,
+          3,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.2.mlp.0.bias": {
+        "shape": [
+          2048
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.2.mlp.0.weight": {
+        "shape": [
+          2048,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.2.mlp.2.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.2.mlp.2.weight": {
+        "shape": [
+          512,
+          2048
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.2.norm.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.2.norm.weight": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.3.conv.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.3.conv.weight": {
+        "shape": [
+          512,
+          3,
+          3,
+          3,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.3.mlp.0.bias": {
+        "shape": [
+          2048
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.3.mlp.0.weight": {
+        "shape": [
+          2048,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.3.mlp.2.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.3.mlp.2.weight": {
+        "shape": [
+          512,
+          2048
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.3.norm.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.3.norm.weight": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.4.conv.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.4.conv.weight": {
+        "shape": [
+          512,
+          3,
+          3,
+          3,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.4.mlp.0.bias": {
+        "shape": [
+          2048
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.4.mlp.0.weight": {
+        "shape": [
+          2048,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.4.mlp.2.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.4.mlp.2.weight": {
+        "shape": [
+          512,
+          2048
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.4.norm.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.4.norm.weight": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.5.conv.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.5.conv.weight": {
+        "shape": [
+          512,
+          3,
+          3,
+          3,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.5.mlp.0.bias": {
+        "shape": [
+          2048
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.5.mlp.0.weight": {
+        "shape": [
+          2048,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.5.mlp.2.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.5.mlp.2.weight": {
+        "shape": [
+          512,
+          2048
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.5.norm.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.5.norm.weight": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.6.conv.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.6.conv.weight": {
+        "shape": [
+          512,
+          3,
+          3,
+          3,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.6.mlp.0.bias": {
+        "shape": [
+          2048
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.6.mlp.0.weight": {
+        "shape": [
+          2048,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.6.mlp.2.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.6.mlp.2.weight": {
+        "shape": [
+          512,
+          2048
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.6.norm.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.6.norm.weight": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.7.conv.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.7.conv.weight": {
+        "shape": [
+          512,
+          3,
+          3,
+          3,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.7.mlp.0.bias": {
+        "shape": [
+          2048
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.7.mlp.0.weight": {
+        "shape": [
+          2048,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.7.mlp.2.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.7.mlp.2.weight": {
+        "shape": [
+          512,
+          2048
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.7.norm.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.7.norm.weight": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.8.conv.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.8.conv.weight": {
+        "shape": [
+          512,
+          3,
+          3,
+          3,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.8.mlp.0.bias": {
+        "shape": [
+          2048
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.8.mlp.0.weight": {
+        "shape": [
+          2048,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.8.mlp.2.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.8.mlp.2.weight": {
+        "shape": [
+          512,
+          2048
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.8.norm.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.8.norm.weight": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.9.conv.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.9.conv.weight": {
+        "shape": [
+          512,
+          3,
+          3,
+          3,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.9.mlp.0.bias": {
+        "shape": [
+          2048
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.9.mlp.0.weight": {
+        "shape": [
+          2048,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.9.mlp.2.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.9.mlp.2.weight": {
+        "shape": [
+          512,
+          2048
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.9.norm.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.9.norm.weight": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.0.conv.bias": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.0.conv.weight": {
+        "shape": [
+          256,
+          3,
+          3,
+          3,
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.0.mlp.0.bias": {
+        "shape": [
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.0.mlp.0.weight": {
+        "shape": [
+          1024,
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.0.mlp.2.bias": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.0.mlp.2.weight": {
+        "shape": [
+          256,
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.0.norm.bias": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.0.norm.weight": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.1.conv.bias": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.1.conv.weight": {
+        "shape": [
+          256,
+          3,
+          3,
+          3,
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.1.mlp.0.bias": {
+        "shape": [
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.1.mlp.0.weight": {
+        "shape": [
+          1024,
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.1.mlp.2.bias": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.1.mlp.2.weight": {
+        "shape": [
+          256,
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.1.norm.bias": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.1.norm.weight": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.2.conv.bias": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.2.conv.weight": {
+        "shape": [
+          256,
+          3,
+          3,
+          3,
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.2.mlp.0.bias": {
+        "shape": [
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.2.mlp.0.weight": {
+        "shape": [
+          1024,
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.2.mlp.2.bias": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.2.mlp.2.weight": {
+        "shape": [
+          256,
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.2.norm.bias": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.2.norm.weight": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.3.conv.bias": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.3.conv.weight": {
+        "shape": [
+          256,
+          3,
+          3,
+          3,
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.3.mlp.0.bias": {
+        "shape": [
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.3.mlp.0.weight": {
+        "shape": [
+          1024,
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.3.mlp.2.bias": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.3.mlp.2.weight": {
+        "shape": [
+          256,
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.3.norm.bias": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.3.norm.weight": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.4.conv.bias": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.4.conv.weight": {
+        "shape": [
+          256,
+          3,
+          3,
+          3,
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.4.mlp.0.bias": {
+        "shape": [
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.4.mlp.0.weight": {
+        "shape": [
+          1024,
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.4.mlp.2.bias": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.4.mlp.2.weight": {
+        "shape": [
+          256,
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.4.norm.bias": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.4.norm.weight": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.5.conv.bias": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.5.conv.weight": {
+        "shape": [
+          256,
+          3,
+          3,
+          3,
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.5.mlp.0.bias": {
+        "shape": [
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.5.mlp.0.weight": {
+        "shape": [
+          1024,
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.5.mlp.2.bias": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.5.mlp.2.weight": {
+        "shape": [
+          256,
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.5.norm.bias": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.5.norm.weight": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.6.conv.bias": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.6.conv.weight": {
+        "shape": [
+          256,
+          3,
+          3,
+          3,
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.6.mlp.0.bias": {
+        "shape": [
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.6.mlp.0.weight": {
+        "shape": [
+          1024,
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.6.mlp.2.bias": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.6.mlp.2.weight": {
+        "shape": [
+          256,
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.6.norm.bias": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.6.norm.weight": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.7.conv.bias": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.7.conv.weight": {
+        "shape": [
+          256,
+          3,
+          3,
+          3,
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.7.mlp.0.bias": {
+        "shape": [
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.7.mlp.0.weight": {
+        "shape": [
+          1024,
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.7.mlp.2.bias": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.7.mlp.2.weight": {
+        "shape": [
+          256,
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.7.norm.bias": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.7.norm.weight": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.8.conv1.bias": {
+        "shape": [
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.8.conv1.weight": {
+        "shape": [
+          1024,
+          3,
+          3,
+          3,
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.8.conv2.bias": {
+        "shape": [
+          128
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.8.conv2.weight": {
+        "shape": [
+          128,
+          3,
+          3,
+          3,
+          128
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.8.norm1.bias": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.8.norm1.weight": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.8.to_subdiv.bias": {
+        "shape": [
+          8
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.8.to_subdiv.weight": {
+        "shape": [
+          8,
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.0.conv.bias": {
+        "shape": [
+          128
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.0.conv.weight": {
+        "shape": [
+          128,
+          3,
+          3,
+          3,
+          128
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.0.mlp.0.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.0.mlp.0.weight": {
+        "shape": [
+          512,
+          128
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.0.mlp.2.bias": {
+        "shape": [
+          128
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.0.mlp.2.weight": {
+        "shape": [
+          128,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.0.norm.bias": {
+        "shape": [
+          128
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.0.norm.weight": {
+        "shape": [
+          128
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.1.conv.bias": {
+        "shape": [
+          128
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.1.conv.weight": {
+        "shape": [
+          128,
+          3,
+          3,
+          3,
+          128
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.1.mlp.0.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.1.mlp.0.weight": {
+        "shape": [
+          512,
+          128
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.1.mlp.2.bias": {
+        "shape": [
+          128
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.1.mlp.2.weight": {
+        "shape": [
+          128,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.1.norm.bias": {
+        "shape": [
+          128
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.1.norm.weight": {
+        "shape": [
+          128
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.2.conv.bias": {
+        "shape": [
+          128
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.2.conv.weight": {
+        "shape": [
+          128,
+          3,
+          3,
+          3,
+          128
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.2.mlp.0.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.2.mlp.0.weight": {
+        "shape": [
+          512,
+          128
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.2.mlp.2.bias": {
+        "shape": [
+          128
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.2.mlp.2.weight": {
+        "shape": [
+          128,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.2.norm.bias": {
+        "shape": [
+          128
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.2.norm.weight": {
+        "shape": [
+          128
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.3.conv.bias": {
+        "shape": [
+          128
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.3.conv.weight": {
+        "shape": [
+          128,
+          3,
+          3,
+          3,
+          128
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.3.mlp.0.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.3.mlp.0.weight": {
+        "shape": [
+          512,
+          128
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.3.mlp.2.bias": {
+        "shape": [
+          128
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.3.mlp.2.weight": {
+        "shape": [
+          128,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.3.norm.bias": {
+        "shape": [
+          128
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.3.norm.weight": {
+        "shape": [
+          128
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.4.conv1.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.4.conv1.weight": {
+        "shape": [
+          512,
+          3,
+          3,
+          3,
+          128
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.4.conv2.bias": {
+        "shape": [
+          64
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.4.conv2.weight": {
+        "shape": [
+          64,
+          3,
+          3,
+          3,
+          64
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.4.norm1.bias": {
+        "shape": [
+          128
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.4.norm1.weight": {
+        "shape": [
+          128
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.4.to_subdiv.bias": {
+        "shape": [
+          8
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.4.to_subdiv.weight": {
+        "shape": [
+          8,
+          128
+        ],
+        "dtype": "F16"
+      },
+      "from_latent.bias": {
+        "shape": [
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "from_latent.weight": {
+        "shape": [
+          1024,
+          32
+        ],
+        "dtype": "F16"
+      },
+      "output_layer.bias": {
+        "shape": [
+          7
+        ],
+        "dtype": "F16"
+      },
+      "output_layer.weight": {
+        "shape": [
+          7,
+          64
+        ],
+        "dtype": "F16"
+      }
+    },
+    "num_tensors": 292
+  },
+  "weights/ckpts/shape_enc_next_dc_f16c32_fp16.safetensors": {
+    "metadata": {},
+    "tensors": {
+      "blocks.0.0.conv1.bias": {
+        "shape": [
+          16
+        ],
+        "dtype": "F16"
+      },
+      "blocks.0.0.conv1.weight": {
+        "shape": [
+          16,
+          3,
+          3,
+          3,
+          64
+        ],
+        "dtype": "F16"
+      },
+      "blocks.0.0.conv2.bias": {
+        "shape": [
+          128
+        ],
+        "dtype": "F16"
+      },
+      "blocks.0.0.conv2.weight": {
+        "shape": [
+          128,
+          3,
+          3,
+          3,
+          128
+        ],
+        "dtype": "F16"
+      },
+      "blocks.0.0.norm1.bias": {
+        "shape": [
+          64
+        ],
+        "dtype": "F16"
+      },
+      "blocks.0.0.norm1.weight": {
+        "shape": [
+          64
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.0.conv.bias": {
+        "shape": [
+          128
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.0.conv.weight": {
+        "shape": [
+          128,
+          3,
+          3,
+          3,
+          128
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.0.mlp.0.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.0.mlp.0.weight": {
+        "shape": [
+          512,
+          128
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.0.mlp.2.bias": {
+        "shape": [
+          128
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.0.mlp.2.weight": {
+        "shape": [
+          128,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.0.norm.bias": {
+        "shape": [
+          128
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.0.norm.weight": {
+        "shape": [
+          128
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.1.conv.bias": {
+        "shape": [
+          128
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.1.conv.weight": {
+        "shape": [
+          128,
+          3,
+          3,
+          3,
+          128
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.1.mlp.0.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.1.mlp.0.weight": {
+        "shape": [
+          512,
+          128
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.1.mlp.2.bias": {
+        "shape": [
+          128
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.1.mlp.2.weight": {
+        "shape": [
+          128,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.1.norm.bias": {
+        "shape": [
+          128
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.1.norm.weight": {
+        "shape": [
+          128
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.2.conv.bias": {
+        "shape": [
+          128
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.2.conv.weight": {
+        "shape": [
+          128,
+          3,
+          3,
+          3,
+          128
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.2.mlp.0.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.2.mlp.0.weight": {
+        "shape": [
+          512,
+          128
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.2.mlp.2.bias": {
+        "shape": [
+          128
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.2.mlp.2.weight": {
+        "shape": [
+          128,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.2.norm.bias": {
+        "shape": [
+          128
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.2.norm.weight": {
+        "shape": [
+          128
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.3.conv.bias": {
+        "shape": [
+          128
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.3.conv.weight": {
+        "shape": [
+          128,
+          3,
+          3,
+          3,
+          128
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.3.mlp.0.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.3.mlp.0.weight": {
+        "shape": [
+          512,
+          128
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.3.mlp.2.bias": {
+        "shape": [
+          128
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.3.mlp.2.weight": {
+        "shape": [
+          128,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.3.norm.bias": {
+        "shape": [
+          128
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.3.norm.weight": {
+        "shape": [
+          128
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.4.conv1.bias": {
+        "shape": [
+          32
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.4.conv1.weight": {
+        "shape": [
+          32,
+          3,
+          3,
+          3,
+          128
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.4.conv2.bias": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.4.conv2.weight": {
+        "shape": [
+          256,
+          3,
+          3,
+          3,
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.4.norm1.bias": {
+        "shape": [
+          128
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.4.norm1.weight": {
+        "shape": [
+          128
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.0.conv.bias": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.0.conv.weight": {
+        "shape": [
+          256,
+          3,
+          3,
+          3,
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.0.mlp.0.bias": {
+        "shape": [
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.0.mlp.0.weight": {
+        "shape": [
+          1024,
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.0.mlp.2.bias": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.0.mlp.2.weight": {
+        "shape": [
+          256,
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.0.norm.bias": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.0.norm.weight": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.1.conv.bias": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.1.conv.weight": {
+        "shape": [
+          256,
+          3,
+          3,
+          3,
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.1.mlp.0.bias": {
+        "shape": [
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.1.mlp.0.weight": {
+        "shape": [
+          1024,
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.1.mlp.2.bias": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.1.mlp.2.weight": {
+        "shape": [
+          256,
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.1.norm.bias": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.1.norm.weight": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.2.conv.bias": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.2.conv.weight": {
+        "shape": [
+          256,
+          3,
+          3,
+          3,
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.2.mlp.0.bias": {
+        "shape": [
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.2.mlp.0.weight": {
+        "shape": [
+          1024,
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.2.mlp.2.bias": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.2.mlp.2.weight": {
+        "shape": [
+          256,
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.2.norm.bias": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.2.norm.weight": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.3.conv.bias": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.3.conv.weight": {
+        "shape": [
+          256,
+          3,
+          3,
+          3,
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.3.mlp.0.bias": {
+        "shape": [
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.3.mlp.0.weight": {
+        "shape": [
+          1024,
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.3.mlp.2.bias": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.3.mlp.2.weight": {
+        "shape": [
+          256,
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.3.norm.bias": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.3.norm.weight": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.4.conv.bias": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.4.conv.weight": {
+        "shape": [
+          256,
+          3,
+          3,
+          3,
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.4.mlp.0.bias": {
+        "shape": [
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.4.mlp.0.weight": {
+        "shape": [
+          1024,
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.4.mlp.2.bias": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.4.mlp.2.weight": {
+        "shape": [
+          256,
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.4.norm.bias": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.4.norm.weight": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.5.conv.bias": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.5.conv.weight": {
+        "shape": [
+          256,
+          3,
+          3,
+          3,
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.5.mlp.0.bias": {
+        "shape": [
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.5.mlp.0.weight": {
+        "shape": [
+          1024,
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.5.mlp.2.bias": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.5.mlp.2.weight": {
+        "shape": [
+          256,
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.5.norm.bias": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.5.norm.weight": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.6.conv.bias": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.6.conv.weight": {
+        "shape": [
+          256,
+          3,
+          3,
+          3,
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.6.mlp.0.bias": {
+        "shape": [
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.6.mlp.0.weight": {
+        "shape": [
+          1024,
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.6.mlp.2.bias": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.6.mlp.2.weight": {
+        "shape": [
+          256,
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.6.norm.bias": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.6.norm.weight": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.7.conv.bias": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.7.conv.weight": {
+        "shape": [
+          256,
+          3,
+          3,
+          3,
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.7.mlp.0.bias": {
+        "shape": [
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.7.mlp.0.weight": {
+        "shape": [
+          1024,
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.7.mlp.2.bias": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.7.mlp.2.weight": {
+        "shape": [
+          256,
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.7.norm.bias": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.7.norm.weight": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.8.conv1.bias": {
+        "shape": [
+          64
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.8.conv1.weight": {
+        "shape": [
+          64,
+          3,
+          3,
+          3,
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.8.conv2.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.8.conv2.weight": {
+        "shape": [
+          512,
+          3,
+          3,
+          3,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.8.norm1.bias": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.8.norm1.weight": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.0.conv.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.0.conv.weight": {
+        "shape": [
+          512,
+          3,
+          3,
+          3,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.0.mlp.0.bias": {
+        "shape": [
+          2048
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.0.mlp.0.weight": {
+        "shape": [
+          2048,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.0.mlp.2.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.0.mlp.2.weight": {
+        "shape": [
+          512,
+          2048
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.0.norm.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.0.norm.weight": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.1.conv.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.1.conv.weight": {
+        "shape": [
+          512,
+          3,
+          3,
+          3,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.1.mlp.0.bias": {
+        "shape": [
+          2048
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.1.mlp.0.weight": {
+        "shape": [
+          2048,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.1.mlp.2.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.1.mlp.2.weight": {
+        "shape": [
+          512,
+          2048
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.1.norm.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.1.norm.weight": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.10.conv.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.10.conv.weight": {
+        "shape": [
+          512,
+          3,
+          3,
+          3,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.10.mlp.0.bias": {
+        "shape": [
+          2048
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.10.mlp.0.weight": {
+        "shape": [
+          2048,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.10.mlp.2.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.10.mlp.2.weight": {
+        "shape": [
+          512,
+          2048
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.10.norm.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.10.norm.weight": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.11.conv.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.11.conv.weight": {
+        "shape": [
+          512,
+          3,
+          3,
+          3,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.11.mlp.0.bias": {
+        "shape": [
+          2048
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.11.mlp.0.weight": {
+        "shape": [
+          2048,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.11.mlp.2.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.11.mlp.2.weight": {
+        "shape": [
+          512,
+          2048
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.11.norm.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.11.norm.weight": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.12.conv.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.12.conv.weight": {
+        "shape": [
+          512,
+          3,
+          3,
+          3,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.12.mlp.0.bias": {
+        "shape": [
+          2048
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.12.mlp.0.weight": {
+        "shape": [
+          2048,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.12.mlp.2.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.12.mlp.2.weight": {
+        "shape": [
+          512,
+          2048
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.12.norm.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.12.norm.weight": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.13.conv.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.13.conv.weight": {
+        "shape": [
+          512,
+          3,
+          3,
+          3,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.13.mlp.0.bias": {
+        "shape": [
+          2048
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.13.mlp.0.weight": {
+        "shape": [
+          2048,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.13.mlp.2.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.13.mlp.2.weight": {
+        "shape": [
+          512,
+          2048
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.13.norm.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.13.norm.weight": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.14.conv.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.14.conv.weight": {
+        "shape": [
+          512,
+          3,
+          3,
+          3,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.14.mlp.0.bias": {
+        "shape": [
+          2048
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.14.mlp.0.weight": {
+        "shape": [
+          2048,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.14.mlp.2.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.14.mlp.2.weight": {
+        "shape": [
+          512,
+          2048
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.14.norm.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.14.norm.weight": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.15.conv.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.15.conv.weight": {
+        "shape": [
+          512,
+          3,
+          3,
+          3,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.15.mlp.0.bias": {
+        "shape": [
+          2048
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.15.mlp.0.weight": {
+        "shape": [
+          2048,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.15.mlp.2.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.15.mlp.2.weight": {
+        "shape": [
+          512,
+          2048
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.15.norm.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.15.norm.weight": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.16.conv1.bias": {
+        "shape": [
+          128
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.16.conv1.weight": {
+        "shape": [
+          128,
+          3,
+          3,
+          3,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.16.conv2.bias": {
+        "shape": [
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.16.conv2.weight": {
+        "shape": [
+          1024,
+          3,
+          3,
+          3,
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.16.norm1.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.16.norm1.weight": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.2.conv.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.2.conv.weight": {
+        "shape": [
+          512,
+          3,
+          3,
+          3,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.2.mlp.0.bias": {
+        "shape": [
+          2048
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.2.mlp.0.weight": {
+        "shape": [
+          2048,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.2.mlp.2.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.2.mlp.2.weight": {
+        "shape": [
+          512,
+          2048
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.2.norm.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.2.norm.weight": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.3.conv.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.3.conv.weight": {
+        "shape": [
+          512,
+          3,
+          3,
+          3,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.3.mlp.0.bias": {
+        "shape": [
+          2048
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.3.mlp.0.weight": {
+        "shape": [
+          2048,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.3.mlp.2.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.3.mlp.2.weight": {
+        "shape": [
+          512,
+          2048
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.3.norm.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.3.norm.weight": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.4.conv.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.4.conv.weight": {
+        "shape": [
+          512,
+          3,
+          3,
+          3,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.4.mlp.0.bias": {
+        "shape": [
+          2048
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.4.mlp.0.weight": {
+        "shape": [
+          2048,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.4.mlp.2.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.4.mlp.2.weight": {
+        "shape": [
+          512,
+          2048
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.4.norm.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.4.norm.weight": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.5.conv.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.5.conv.weight": {
+        "shape": [
+          512,
+          3,
+          3,
+          3,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.5.mlp.0.bias": {
+        "shape": [
+          2048
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.5.mlp.0.weight": {
+        "shape": [
+          2048,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.5.mlp.2.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.5.mlp.2.weight": {
+        "shape": [
+          512,
+          2048
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.5.norm.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.5.norm.weight": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.6.conv.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.6.conv.weight": {
+        "shape": [
+          512,
+          3,
+          3,
+          3,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.6.mlp.0.bias": {
+        "shape": [
+          2048
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.6.mlp.0.weight": {
+        "shape": [
+          2048,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.6.mlp.2.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.6.mlp.2.weight": {
+        "shape": [
+          512,
+          2048
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.6.norm.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.6.norm.weight": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.7.conv.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.7.conv.weight": {
+        "shape": [
+          512,
+          3,
+          3,
+          3,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.7.mlp.0.bias": {
+        "shape": [
+          2048
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.7.mlp.0.weight": {
+        "shape": [
+          2048,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.7.mlp.2.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.7.mlp.2.weight": {
+        "shape": [
+          512,
+          2048
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.7.norm.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.7.norm.weight": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.8.conv.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.8.conv.weight": {
+        "shape": [
+          512,
+          3,
+          3,
+          3,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.8.mlp.0.bias": {
+        "shape": [
+          2048
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.8.mlp.0.weight": {
+        "shape": [
+          2048,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.8.mlp.2.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.8.mlp.2.weight": {
+        "shape": [
+          512,
+          2048
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.8.norm.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.8.norm.weight": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.9.conv.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.9.conv.weight": {
+        "shape": [
+          512,
+          3,
+          3,
+          3,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.9.mlp.0.bias": {
+        "shape": [
+          2048
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.9.mlp.0.weight": {
+        "shape": [
+          2048,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.9.mlp.2.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.9.mlp.2.weight": {
+        "shape": [
+          512,
+          2048
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.9.norm.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.9.norm.weight": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.4.0.conv.bias": {
+        "shape": [
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.4.0.conv.weight": {
+        "shape": [
+          1024,
+          3,
+          3,
+          3,
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.4.0.mlp.0.bias": {
+        "shape": [
+          4096
+        ],
+        "dtype": "F16"
+      },
+      "blocks.4.0.mlp.0.weight": {
+        "shape": [
+          4096,
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.4.0.mlp.2.bias": {
+        "shape": [
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.4.0.mlp.2.weight": {
+        "shape": [
+          1024,
+          4096
+        ],
+        "dtype": "F16"
+      },
+      "blocks.4.0.norm.bias": {
+        "shape": [
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.4.0.norm.weight": {
+        "shape": [
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.4.1.conv.bias": {
+        "shape": [
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.4.1.conv.weight": {
+        "shape": [
+          1024,
+          3,
+          3,
+          3,
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.4.1.mlp.0.bias": {
+        "shape": [
+          4096
+        ],
+        "dtype": "F16"
+      },
+      "blocks.4.1.mlp.0.weight": {
+        "shape": [
+          4096,
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.4.1.mlp.2.bias": {
+        "shape": [
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.4.1.mlp.2.weight": {
+        "shape": [
+          1024,
+          4096
+        ],
+        "dtype": "F16"
+      },
+      "blocks.4.1.norm.bias": {
+        "shape": [
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.4.1.norm.weight": {
+        "shape": [
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.4.2.conv.bias": {
+        "shape": [
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.4.2.conv.weight": {
+        "shape": [
+          1024,
+          3,
+          3,
+          3,
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.4.2.mlp.0.bias": {
+        "shape": [
+          4096
+        ],
+        "dtype": "F16"
+      },
+      "blocks.4.2.mlp.0.weight": {
+        "shape": [
+          4096,
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.4.2.mlp.2.bias": {
+        "shape": [
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.4.2.mlp.2.weight": {
+        "shape": [
+          1024,
+          4096
+        ],
+        "dtype": "F16"
+      },
+      "blocks.4.2.norm.bias": {
+        "shape": [
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.4.2.norm.weight": {
+        "shape": [
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.4.3.conv.bias": {
+        "shape": [
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.4.3.conv.weight": {
+        "shape": [
+          1024,
+          3,
+          3,
+          3,
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.4.3.mlp.0.bias": {
+        "shape": [
+          4096
+        ],
+        "dtype": "F16"
+      },
+      "blocks.4.3.mlp.0.weight": {
+        "shape": [
+          4096,
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.4.3.mlp.2.bias": {
+        "shape": [
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.4.3.mlp.2.weight": {
+        "shape": [
+          1024,
+          4096
+        ],
+        "dtype": "F16"
+      },
+      "blocks.4.3.norm.bias": {
+        "shape": [
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.4.3.norm.weight": {
+        "shape": [
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "input_layer.bias": {
+        "shape": [
+          64
+        ],
+        "dtype": "F16"
+      },
+      "input_layer.weight": {
+        "shape": [
+          64,
+          6
+        ],
+        "dtype": "F16"
+      },
+      "to_latent.bias": {
+        "shape": [
+          64
+        ],
+        "dtype": "F16"
+      },
+      "to_latent.weight": {
+        "shape": [
+          64,
+          1024
+        ],
+        "dtype": "F16"
+      }
+    },
+    "num_tensors": 284
+  },
+  "weights/ckpts/tex_dec_next_dc_f16c32_fp16.safetensors": {
+    "metadata": {},
+    "tensors": {
+      "blocks.0.0.conv.bias": {
+        "shape": [
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.0.0.conv.weight": {
+        "shape": [
+          1024,
+          3,
+          3,
+          3,
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.0.0.mlp.0.bias": {
+        "shape": [
+          4096
+        ],
+        "dtype": "F16"
+      },
+      "blocks.0.0.mlp.0.weight": {
+        "shape": [
+          4096,
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.0.0.mlp.2.bias": {
+        "shape": [
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.0.0.mlp.2.weight": {
+        "shape": [
+          1024,
+          4096
+        ],
+        "dtype": "F16"
+      },
+      "blocks.0.0.norm.bias": {
+        "shape": [
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.0.0.norm.weight": {
+        "shape": [
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.0.1.conv.bias": {
+        "shape": [
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.0.1.conv.weight": {
+        "shape": [
+          1024,
+          3,
+          3,
+          3,
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.0.1.mlp.0.bias": {
+        "shape": [
+          4096
+        ],
+        "dtype": "F16"
+      },
+      "blocks.0.1.mlp.0.weight": {
+        "shape": [
+          4096,
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.0.1.mlp.2.bias": {
+        "shape": [
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.0.1.mlp.2.weight": {
+        "shape": [
+          1024,
+          4096
+        ],
+        "dtype": "F16"
+      },
+      "blocks.0.1.norm.bias": {
+        "shape": [
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.0.1.norm.weight": {
+        "shape": [
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.0.2.conv.bias": {
+        "shape": [
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.0.2.conv.weight": {
+        "shape": [
+          1024,
+          3,
+          3,
+          3,
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.0.2.mlp.0.bias": {
+        "shape": [
+          4096
+        ],
+        "dtype": "F16"
+      },
+      "blocks.0.2.mlp.0.weight": {
+        "shape": [
+          4096,
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.0.2.mlp.2.bias": {
+        "shape": [
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.0.2.mlp.2.weight": {
+        "shape": [
+          1024,
+          4096
+        ],
+        "dtype": "F16"
+      },
+      "blocks.0.2.norm.bias": {
+        "shape": [
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.0.2.norm.weight": {
+        "shape": [
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.0.3.conv.bias": {
+        "shape": [
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.0.3.conv.weight": {
+        "shape": [
+          1024,
+          3,
+          3,
+          3,
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.0.3.mlp.0.bias": {
+        "shape": [
+          4096
+        ],
+        "dtype": "F16"
+      },
+      "blocks.0.3.mlp.0.weight": {
+        "shape": [
+          4096,
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.0.3.mlp.2.bias": {
+        "shape": [
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.0.3.mlp.2.weight": {
+        "shape": [
+          1024,
+          4096
+        ],
+        "dtype": "F16"
+      },
+      "blocks.0.3.norm.bias": {
+        "shape": [
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.0.3.norm.weight": {
+        "shape": [
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.0.4.conv1.bias": {
+        "shape": [
+          4096
+        ],
+        "dtype": "F16"
+      },
+      "blocks.0.4.conv1.weight": {
+        "shape": [
+          4096,
+          3,
+          3,
+          3,
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.0.4.conv2.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.0.4.conv2.weight": {
+        "shape": [
+          512,
+          3,
+          3,
+          3,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.0.4.norm1.bias": {
+        "shape": [
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.0.4.norm1.weight": {
+        "shape": [
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.0.conv.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.0.conv.weight": {
+        "shape": [
+          512,
+          3,
+          3,
+          3,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.0.mlp.0.bias": {
+        "shape": [
+          2048
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.0.mlp.0.weight": {
+        "shape": [
+          2048,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.0.mlp.2.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.0.mlp.2.weight": {
+        "shape": [
+          512,
+          2048
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.0.norm.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.0.norm.weight": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.1.conv.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.1.conv.weight": {
+        "shape": [
+          512,
+          3,
+          3,
+          3,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.1.mlp.0.bias": {
+        "shape": [
+          2048
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.1.mlp.0.weight": {
+        "shape": [
+          2048,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.1.mlp.2.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.1.mlp.2.weight": {
+        "shape": [
+          512,
+          2048
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.1.norm.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.1.norm.weight": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.10.conv.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.10.conv.weight": {
+        "shape": [
+          512,
+          3,
+          3,
+          3,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.10.mlp.0.bias": {
+        "shape": [
+          2048
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.10.mlp.0.weight": {
+        "shape": [
+          2048,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.10.mlp.2.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.10.mlp.2.weight": {
+        "shape": [
+          512,
+          2048
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.10.norm.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.10.norm.weight": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.11.conv.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.11.conv.weight": {
+        "shape": [
+          512,
+          3,
+          3,
+          3,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.11.mlp.0.bias": {
+        "shape": [
+          2048
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.11.mlp.0.weight": {
+        "shape": [
+          2048,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.11.mlp.2.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.11.mlp.2.weight": {
+        "shape": [
+          512,
+          2048
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.11.norm.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.11.norm.weight": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.12.conv.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.12.conv.weight": {
+        "shape": [
+          512,
+          3,
+          3,
+          3,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.12.mlp.0.bias": {
+        "shape": [
+          2048
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.12.mlp.0.weight": {
+        "shape": [
+          2048,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.12.mlp.2.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.12.mlp.2.weight": {
+        "shape": [
+          512,
+          2048
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.12.norm.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.12.norm.weight": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.13.conv.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.13.conv.weight": {
+        "shape": [
+          512,
+          3,
+          3,
+          3,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.13.mlp.0.bias": {
+        "shape": [
+          2048
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.13.mlp.0.weight": {
+        "shape": [
+          2048,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.13.mlp.2.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.13.mlp.2.weight": {
+        "shape": [
+          512,
+          2048
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.13.norm.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.13.norm.weight": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.14.conv.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.14.conv.weight": {
+        "shape": [
+          512,
+          3,
+          3,
+          3,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.14.mlp.0.bias": {
+        "shape": [
+          2048
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.14.mlp.0.weight": {
+        "shape": [
+          2048,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.14.mlp.2.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.14.mlp.2.weight": {
+        "shape": [
+          512,
+          2048
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.14.norm.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.14.norm.weight": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.15.conv.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.15.conv.weight": {
+        "shape": [
+          512,
+          3,
+          3,
+          3,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.15.mlp.0.bias": {
+        "shape": [
+          2048
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.15.mlp.0.weight": {
+        "shape": [
+          2048,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.15.mlp.2.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.15.mlp.2.weight": {
+        "shape": [
+          512,
+          2048
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.15.norm.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.15.norm.weight": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.16.conv1.bias": {
+        "shape": [
+          2048
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.16.conv1.weight": {
+        "shape": [
+          2048,
+          3,
+          3,
+          3,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.16.conv2.bias": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.16.conv2.weight": {
+        "shape": [
+          256,
+          3,
+          3,
+          3,
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.16.norm1.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.16.norm1.weight": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.2.conv.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.2.conv.weight": {
+        "shape": [
+          512,
+          3,
+          3,
+          3,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.2.mlp.0.bias": {
+        "shape": [
+          2048
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.2.mlp.0.weight": {
+        "shape": [
+          2048,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.2.mlp.2.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.2.mlp.2.weight": {
+        "shape": [
+          512,
+          2048
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.2.norm.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.2.norm.weight": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.3.conv.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.3.conv.weight": {
+        "shape": [
+          512,
+          3,
+          3,
+          3,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.3.mlp.0.bias": {
+        "shape": [
+          2048
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.3.mlp.0.weight": {
+        "shape": [
+          2048,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.3.mlp.2.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.3.mlp.2.weight": {
+        "shape": [
+          512,
+          2048
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.3.norm.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.3.norm.weight": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.4.conv.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.4.conv.weight": {
+        "shape": [
+          512,
+          3,
+          3,
+          3,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.4.mlp.0.bias": {
+        "shape": [
+          2048
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.4.mlp.0.weight": {
+        "shape": [
+          2048,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.4.mlp.2.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.4.mlp.2.weight": {
+        "shape": [
+          512,
+          2048
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.4.norm.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.4.norm.weight": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.5.conv.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.5.conv.weight": {
+        "shape": [
+          512,
+          3,
+          3,
+          3,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.5.mlp.0.bias": {
+        "shape": [
+          2048
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.5.mlp.0.weight": {
+        "shape": [
+          2048,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.5.mlp.2.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.5.mlp.2.weight": {
+        "shape": [
+          512,
+          2048
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.5.norm.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.5.norm.weight": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.6.conv.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.6.conv.weight": {
+        "shape": [
+          512,
+          3,
+          3,
+          3,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.6.mlp.0.bias": {
+        "shape": [
+          2048
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.6.mlp.0.weight": {
+        "shape": [
+          2048,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.6.mlp.2.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.6.mlp.2.weight": {
+        "shape": [
+          512,
+          2048
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.6.norm.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.6.norm.weight": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.7.conv.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.7.conv.weight": {
+        "shape": [
+          512,
+          3,
+          3,
+          3,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.7.mlp.0.bias": {
+        "shape": [
+          2048
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.7.mlp.0.weight": {
+        "shape": [
+          2048,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.7.mlp.2.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.7.mlp.2.weight": {
+        "shape": [
+          512,
+          2048
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.7.norm.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.7.norm.weight": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.8.conv.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.8.conv.weight": {
+        "shape": [
+          512,
+          3,
+          3,
+          3,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.8.mlp.0.bias": {
+        "shape": [
+          2048
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.8.mlp.0.weight": {
+        "shape": [
+          2048,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.8.mlp.2.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.8.mlp.2.weight": {
+        "shape": [
+          512,
+          2048
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.8.norm.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.8.norm.weight": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.9.conv.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.9.conv.weight": {
+        "shape": [
+          512,
+          3,
+          3,
+          3,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.9.mlp.0.bias": {
+        "shape": [
+          2048
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.9.mlp.0.weight": {
+        "shape": [
+          2048,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.9.mlp.2.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.9.mlp.2.weight": {
+        "shape": [
+          512,
+          2048
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.9.norm.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.1.9.norm.weight": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.0.conv.bias": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.0.conv.weight": {
+        "shape": [
+          256,
+          3,
+          3,
+          3,
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.0.mlp.0.bias": {
+        "shape": [
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.0.mlp.0.weight": {
+        "shape": [
+          1024,
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.0.mlp.2.bias": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.0.mlp.2.weight": {
+        "shape": [
+          256,
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.0.norm.bias": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.0.norm.weight": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.1.conv.bias": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.1.conv.weight": {
+        "shape": [
+          256,
+          3,
+          3,
+          3,
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.1.mlp.0.bias": {
+        "shape": [
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.1.mlp.0.weight": {
+        "shape": [
+          1024,
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.1.mlp.2.bias": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.1.mlp.2.weight": {
+        "shape": [
+          256,
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.1.norm.bias": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.1.norm.weight": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.2.conv.bias": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.2.conv.weight": {
+        "shape": [
+          256,
+          3,
+          3,
+          3,
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.2.mlp.0.bias": {
+        "shape": [
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.2.mlp.0.weight": {
+        "shape": [
+          1024,
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.2.mlp.2.bias": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.2.mlp.2.weight": {
+        "shape": [
+          256,
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.2.norm.bias": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.2.norm.weight": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.3.conv.bias": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.3.conv.weight": {
+        "shape": [
+          256,
+          3,
+          3,
+          3,
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.3.mlp.0.bias": {
+        "shape": [
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.3.mlp.0.weight": {
+        "shape": [
+          1024,
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.3.mlp.2.bias": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.3.mlp.2.weight": {
+        "shape": [
+          256,
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.3.norm.bias": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.3.norm.weight": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.4.conv.bias": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.4.conv.weight": {
+        "shape": [
+          256,
+          3,
+          3,
+          3,
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.4.mlp.0.bias": {
+        "shape": [
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.4.mlp.0.weight": {
+        "shape": [
+          1024,
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.4.mlp.2.bias": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.4.mlp.2.weight": {
+        "shape": [
+          256,
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.4.norm.bias": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.4.norm.weight": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.5.conv.bias": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.5.conv.weight": {
+        "shape": [
+          256,
+          3,
+          3,
+          3,
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.5.mlp.0.bias": {
+        "shape": [
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.5.mlp.0.weight": {
+        "shape": [
+          1024,
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.5.mlp.2.bias": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.5.mlp.2.weight": {
+        "shape": [
+          256,
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.5.norm.bias": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.5.norm.weight": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.6.conv.bias": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.6.conv.weight": {
+        "shape": [
+          256,
+          3,
+          3,
+          3,
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.6.mlp.0.bias": {
+        "shape": [
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.6.mlp.0.weight": {
+        "shape": [
+          1024,
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.6.mlp.2.bias": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.6.mlp.2.weight": {
+        "shape": [
+          256,
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.6.norm.bias": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.6.norm.weight": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.7.conv.bias": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.7.conv.weight": {
+        "shape": [
+          256,
+          3,
+          3,
+          3,
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.7.mlp.0.bias": {
+        "shape": [
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.7.mlp.0.weight": {
+        "shape": [
+          1024,
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.7.mlp.2.bias": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.7.mlp.2.weight": {
+        "shape": [
+          256,
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.7.norm.bias": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.7.norm.weight": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.8.conv1.bias": {
+        "shape": [
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.8.conv1.weight": {
+        "shape": [
+          1024,
+          3,
+          3,
+          3,
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.8.conv2.bias": {
+        "shape": [
+          128
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.8.conv2.weight": {
+        "shape": [
+          128,
+          3,
+          3,
+          3,
+          128
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.8.norm1.bias": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.2.8.norm1.weight": {
+        "shape": [
+          256
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.0.conv.bias": {
+        "shape": [
+          128
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.0.conv.weight": {
+        "shape": [
+          128,
+          3,
+          3,
+          3,
+          128
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.0.mlp.0.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.0.mlp.0.weight": {
+        "shape": [
+          512,
+          128
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.0.mlp.2.bias": {
+        "shape": [
+          128
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.0.mlp.2.weight": {
+        "shape": [
+          128,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.0.norm.bias": {
+        "shape": [
+          128
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.0.norm.weight": {
+        "shape": [
+          128
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.1.conv.bias": {
+        "shape": [
+          128
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.1.conv.weight": {
+        "shape": [
+          128,
+          3,
+          3,
+          3,
+          128
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.1.mlp.0.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.1.mlp.0.weight": {
+        "shape": [
+          512,
+          128
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.1.mlp.2.bias": {
+        "shape": [
+          128
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.1.mlp.2.weight": {
+        "shape": [
+          128,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.1.norm.bias": {
+        "shape": [
+          128
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.1.norm.weight": {
+        "shape": [
+          128
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.2.conv.bias": {
+        "shape": [
+          128
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.2.conv.weight": {
+        "shape": [
+          128,
+          3,
+          3,
+          3,
+          128
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.2.mlp.0.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.2.mlp.0.weight": {
+        "shape": [
+          512,
+          128
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.2.mlp.2.bias": {
+        "shape": [
+          128
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.2.mlp.2.weight": {
+        "shape": [
+          128,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.2.norm.bias": {
+        "shape": [
+          128
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.2.norm.weight": {
+        "shape": [
+          128
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.3.conv.bias": {
+        "shape": [
+          128
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.3.conv.weight": {
+        "shape": [
+          128,
+          3,
+          3,
+          3,
+          128
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.3.mlp.0.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.3.mlp.0.weight": {
+        "shape": [
+          512,
+          128
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.3.mlp.2.bias": {
+        "shape": [
+          128
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.3.mlp.2.weight": {
+        "shape": [
+          128,
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.3.norm.bias": {
+        "shape": [
+          128
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.3.norm.weight": {
+        "shape": [
+          128
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.4.conv1.bias": {
+        "shape": [
+          512
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.4.conv1.weight": {
+        "shape": [
+          512,
+          3,
+          3,
+          3,
+          128
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.4.conv2.bias": {
+        "shape": [
+          64
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.4.conv2.weight": {
+        "shape": [
+          64,
+          3,
+          3,
+          3,
+          64
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.4.norm1.bias": {
+        "shape": [
+          128
+        ],
+        "dtype": "F16"
+      },
+      "blocks.3.4.norm1.weight": {
+        "shape": [
+          128
+        ],
+        "dtype": "F16"
+      },
+      "from_latent.bias": {
+        "shape": [
+          1024
+        ],
+        "dtype": "F16"
+      },
+      "from_latent.weight": {
+        "shape": [
+          1024,
+          32
+        ],
+        "dtype": "F16"
+      },
+      "output_layer.bias": {
+        "shape": [
+          6
+        ],
+        "dtype": "F16"
+      },
+      "output_layer.weight": {
+        "shape": [
+          6,
+          64
+        ],
+        "dtype": "F16"
+      }
+    },
+    "num_tensors": 284
+  }
+}
