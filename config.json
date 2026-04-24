@@ -196,7 +196,7 @@
   "rembg_model": {
     "name": "BiRefNet",
     "hf_id": "briaai/RMBG-2.0",
-    "backend": "torch (CPU default; --rembg-device cuda/mps to override)",
+    "backend": "torch (auto-picks MPS when available, else CPU; --rembg-device cpu|mps to override)",
     "inference_used": "on-demand",
     "note": "Lazy-loaded only when the input image lacks a meaningful alpha channel; weights are aggressively gc'd before DiT inference to avoid memory contention. Requires the `rembg` extras (`uv sync --extra rembg`)."
   },

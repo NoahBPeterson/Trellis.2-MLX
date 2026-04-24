@@ -139,7 +139,7 @@ class Trellis2ImageTo3DPipelineMLX:
         pipeline_config: dict,
         pipeline_type: str = "512",
         dino_device: str = "cpu",
-        rembg_device: str = "cpu",
+        rembg_device: str = "auto",
         max_num_tokens: int = 49152,
         dit_compute_dtype: str = "bfloat16",
     ):
@@ -421,7 +421,7 @@ class Trellis2ImageTo3DPipelineMLX:
         pipeline_json: str | Path | None = None,
         pipeline_type: str = "512",
         dino_device: str = "cpu",
-        rembg_device: str = "cpu",
+        rembg_device: str = "auto",
         dit_compute_dtype: str = "bfloat16",
     ) -> "Trellis2ImageTo3DPipelineMLX":
         ckpt_dir = Path(ckpt_dir)

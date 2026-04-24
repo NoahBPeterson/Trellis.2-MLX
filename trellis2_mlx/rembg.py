@@ -24,7 +24,9 @@ _IMAGENET_STD = torch.tensor([0.229, 0.224, 0.225]).view(1, 3, 1, 1)
 class BiRefNetRembg:
     """One-shot background remover. Load, call on one image, free via `.unload()`."""
 
-    def __init__(self, model_name: str = "briaai/RMBG-2.0", device: str = "cpu"):
+    def __init__(self, model_name: str = "briaai/RMBG-2.0", device: str = "auto"):
+        if device == "auto":
+            device = "mps" if hasattr(torch.backends, "mps") and torch.backends.mps.is_available() else "cpu"
         self.model_name = model_name
         self.device = device
         self.model = AutoModelForImageSegmentation.from_pretrained(model_name, trust_remote_code=True)
