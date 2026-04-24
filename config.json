@@ -12,7 +12,7 @@
 
   "total_params_4b": "SS flow (1.3B) + Shape flow (1.3B) + Tex flow (1.3B) + VAE/decoder heads (~0.5B) ≈ 4B",
   "supported_pipeline_types": ["512", "1024", "1024_cascade", "1536_cascade"],
-  "implemented_pipeline_types": ["512", "1024"],
+  "implemented_pipeline_types": ["512", "1024", "1024_cascade"],
 
   "components": {
     "sparse_structure_flow_model": {

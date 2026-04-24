@@ -21,7 +21,7 @@ An MLX-native re-implementation of Microsoft's [TRELLIS.2-4B](https://huggingfac
 
 Weights were converted from the upstream `microsoft/TRELLIS.2-4B` safetensors shards — no re-training, same numerics intent, per-tensor bijection recorded alongside each checkpoint.
 
-**Status:** single-image → triangle-mesh GLB at `pipeline_type="512"` and `"1024"` working end-to-end. Cascade variants (`1024_cascade`, `1536_cascade`) and the PBR texture pipeline are scoped but deferred (see [Roadmap](#roadmap)).
+**Status:** single-image → triangle-mesh GLB working end-to-end at `pipeline_type` ∈ {`512`, `1024`, `1024_cascade`}. `1536_cascade` is wired but needs more RAM than most Macs have. The PBR texture pipeline is scoped but deferred (see [Roadmap](#roadmap)).
 
 ---
 
@@ -164,6 +164,19 @@ Mesh output: 1,651,404 verts / 3,501,928 faces.
 
 Mesh output: 6,772,966 verts / 13,554,918 faces (4.1× the 512 mesh, same bbox, higher fidelity).
 
+### `pipeline_type="1024_cascade"`
+
+| Stage                                               | Time    |
+| --------------------------------------------------- | ------: |
+| Preprocess                                          |    0.1s |
+| DINOv3 @ 512 + 1024 (both conds)                    |    8.3s |
+| SS flow + decoder                                   |  143.3s |
+| Shape SLat cascade (LR @512 + VAE-upsample + HR @1024, 18902 tokens) | 1552.7s |
+| Shape VAE decode + dual-grid mesh                   |  104.1s |
+| **Total**                                           | **~30 min** |
+
+Mesh output: 6,946,823 verts / 14,091,496 faces. ~7% faster than direct `1024` because the low-res pass constrains the active-voxel set before the expensive HR flow. The cascade tokens end up very close to direct `1024` (18902 vs 19104) so on T.png the speedup is modest; on images whose low-res structure is much sparser than the high-res, the gap widens.
+
 The flow DiTs currently dominate wall-clock; the sparse VAE has been tuned (batched `np.searchsorted` neighbor maps, per-kernel conv fused via gather, vectorized C2S subdivision) and micro-benchmarks in the 900–3000 GFLOPS range per submanifold conv. The 1024 shape-flow cost grows roughly with the square of the token count (self-attention), so the difference between 512 and 1024 is mostly attention compute. Further DiT-side optimization is planned — see [Roadmap](#roadmap).
 
 For comparison, upstream on an NVIDIA H100 reports ~3s at 512³ and ~17s at 1024³. We are not trying to match that; the objective is "works on a MacBook."
@@ -289,8 +302,8 @@ Checks:
 ## Roadmap
 
 **Immediate:**
-- Flow-DiT perf pass (currently 136s + 139s out of the 305s budget). Attention-level tuning, possibly a kernel for the shared `adaLN_modulation` projection, and reducing unnecessary `mx.eval` barriers.
-- `pipeline_type="1024"` and `"1024_cascade"` wiring; shape flow weights are already converted.
+- Flow-DiT perf pass — currently ~87% of wall-clock on `512`, ~86% on `1024`. Attention-level tuning, possibly a kernel for the shared `adaLN_modulation` projection, and reducing unnecessary `mx.eval` barriers.
+- `pipeline_type="1536_cascade"` smoke — the code path is wired (same as `1024_cascade` with `hr_resolution=1536`), but the token count is expected to blow past the 49k cap on most inputs. Upstream's cap-downgrade fallback is implemented; needs a machine with 64+ GB to verify.
 
 **v2:**
 - Texture pipeline (`Trellis2ImageToTexturedGLBPipelineMLX`). Backbone + VAE arch is identical to shape; concat-condition on shape latent; weights are already converted in `ckpts/*tex*.safetensors`.

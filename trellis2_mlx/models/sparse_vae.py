@@ -200,6 +200,31 @@ class SparseUnetVaeDecoder(nn.Module):
             return h, subs
         return h
 
+    def upsample(self, x: SparseTensor, upsample_times: int) -> mx.array:
+        """Run the first `upsample_times` decoder stages and return the resulting
+        coords. Each stage ends in a `SparseResBlockC2S3d` that doubles spatial
+        resolution, so `upsample_times=4` produces coords at 16× the input grid.
+
+        Cascade pipelines use this to derive high-res active-voxel coords from a
+        low-res SLat without doing a full decode. Ported from
+        `upstream/trellis2/models/sc_vaes/sparse_unet_vae.py:upsample`.
+        """
+        assert self.pred_subdiv, "upsample() requires pred_subdiv=True"
+        h = self.from_latent(x)
+        if self.use_fp16:
+            h = h.astype(mx.float16)
+        for i, stage in enumerate(self.blocks):
+            if i == upsample_times:
+                return h.coords
+            for j, block in enumerate(stage):
+                is_last = j == len(stage) - 1
+                if i < len(self.blocks) - 1 and is_last and self.pred_subdiv:
+                    h, _ = block(h)
+                else:
+                    h = block(h)
+                mx.eval(h.feats)
+        return h.coords
+
 
 class FlexiDualGridVaeDecoder(SparseUnetVaeDecoder):
     """Thin wrapper that fixes out_channels=7 (vertex xyz + 3 intersections + quad_lerp).
