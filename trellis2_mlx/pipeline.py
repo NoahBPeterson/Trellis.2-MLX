@@ -183,23 +183,27 @@ class Trellis2ImageTo3DPipelineMLX:
 
     def run(self, image: Image.Image, seed: int = 42) -> Tuple[np.ndarray, np.ndarray]:
         """image (RGBA) → (vertices (V, 3), faces (T, 3))."""
+        import time as _time
+        t0 = _time.time()
         print("[1/5] preprocess")
         pre = preprocess_image(image)
+        t1 = _time.time(); print(f"      +{t1-t0:.1f}s")
         print("[2/5] DINOv3 image conditioning")
         cond, neg = self._cond_from_image(pre)
-        print(f"      cond shape: {tuple(cond.shape)}")
+        t2 = _time.time(); print(f"      cond shape: {tuple(cond.shape)}   +{t2-t1:.1f}s")
         print("[3/5] sparse structure flow + decode")
         occupancy = self._sample_ss(cond, neg, seed)
         target_res = {"512": 32, "1024_cascade": 32}[self.pipeline_type]
         coords = self._coords_from_occupancy(occupancy, target_res)
-        print(f"      active voxels at {target_res}^3: {coords.shape[0]}")
+        t3 = _time.time(); print(f"      active voxels at {target_res}^3: {coords.shape[0]}   +{t3-t2:.1f}s")
         print("[4/5] shape SLat flow")
         slat = self._sample_shape_slat(cond, neg, coords, seed)
-        print(f"      slat feats: {tuple(slat.feats.shape)}")
+        mx.eval(slat.feats)
+        t4 = _time.time(); print(f"      slat feats: {tuple(slat.feats.shape)}   +{t4-t3:.1f}s")
         print("[5/5] shape VAE decode + dual-grid mesh extract")
         resolution = {"512": 512, "1024": 1024}.get(self.pipeline_type, 512)
         V, F = self._decode_shape(slat, resolution)
-        print(f"      mesh: {V.shape[0]} verts, {F.shape[0]} faces")
+        t5 = _time.time(); print(f"      mesh: {V.shape[0]} verts, {F.shape[0]} faces   +{t5-t4:.1f}s")
         return V, F
 
     @classmethod

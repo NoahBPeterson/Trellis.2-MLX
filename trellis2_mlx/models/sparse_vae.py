@@ -159,12 +159,18 @@ class SparseUnetVaeDecoder(nn.Module):
         if self.use_fp16:
             h = h.astype(mx.float16)
 
+        import os
+        import time
+        timing = os.environ.get("TRELLIS_VAE_TIMING") == "1"
+
         subs: List[SparseTensor] = []
         for i, stage in enumerate(self.blocks):
             for j, block in enumerate(stage):
                 is_last = j == len(stage) - 1
+                if timing:
+                    mx.eval(h.feats)
+                    t0 = time.time()
                 if i < len(self.blocks) - 1 and is_last:
-                    # Upsample block
                     if self.pred_subdiv:
                         h, sub = block(h)
                         subs.append(sub)
@@ -172,6 +178,14 @@ class SparseUnetVaeDecoder(nn.Module):
                         h = block(h, subdiv=guide_subs[i] if guide_subs is not None else None)
                 else:
                     h = block(h)
+                if timing:
+                    mx.eval(h.feats)
+                    dt = time.time() - t0
+                    kind = type(block).__name__
+                    F = h.feats.shape[0]
+                    print(f"  stage {i} block {j:2d} {kind:22s} F={F:>7d} Co={h.feats.shape[1]:>5d} {dt*1000:7.1f}ms")
+                else:
+                    mx.eval(h.feats)
 
         h = h.astype(x.dtype)
         # Final affine-less LN, then output projection
