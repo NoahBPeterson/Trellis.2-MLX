@@ -1,0 +1,240 @@
+{
+  "model_type": "trellis2",
+  "framework": "mlx",
+  "library_name": "trellis2-mlx",
+  "pipeline_class": "trellis2_mlx.pipeline.Trellis2ImageTo3DPipelineMLX",
+  "base_model": "microsoft/TRELLIS.2-4B",
+  "task": "image-to-3d",
+
+  "loading_note": "This repo does NOT load via transformers.AutoModel.from_pretrained — the `transformers` library has no MLX backend. Use `trellis2_mlx.pipeline.Trellis2ImageTo3DPipelineMLX.from_pretrained(ckpt_dir=..., pipeline_json=...)` from the `trellis2-mlx` package.",
+  "tensor_index": "model.safetensors.index.json",
+  "tensor_name_convention": "Each component's tensors are prefixed with a component tag (`ss_flow.`, `shape_dec.`, `tex_flow_512.`, …) so all 4418 tensors across the 10 shards live in a single unified namespace. The pipeline's weight-loader strips the prefix at load time. Per-file `*.bijection.json` records the torch↔MLX mapping against the un-prefixed names.",
+
+  "total_params_4b": "SS flow (1.3B) + Shape flow (1.3B) + Tex flow (1.3B) + VAE/decoder heads (~0.5B) ≈ 4B",
+  "supported_pipeline_types": ["512", "1024", "1024_cascade", "1536_cascade"],
+  "implemented_pipeline_types": ["512"],
+
+  "components": {
+    "sparse_structure_flow_model": {
+      "class": "SparseStructureFlowModel",
+      "role": "Stage 1: flow-matching DiT predicting 16^3 occupancy latents conditioned on image features",
+      "file": "ckpts/ss_flow_img_dit_1_3B_64.safetensors",
+      "config": "ckpts/ss_flow_img_dit_1_3B_64.config.json",
+      "bijection": "ckpts/ss_flow_img_dit_1_3B_64.bijection.json",
+      "dtype": "bfloat16",
+      "params": {
+        "resolution": 16,
+        "in_channels": 8,
+        "out_channels": 8,
+        "model_channels": 1536,
+        "cond_channels": 1024,
+        "num_blocks": 30,
+        "num_heads": 12,
+        "mlp_ratio": 5.3334,
+        "pe_mode": "rope",
+        "share_mod": true,
+        "qk_rms_norm": true,
+        "qk_rms_norm_cross": true
+      }
+    },
+
+    "sparse_structure_decoder": {
+      "class": "SparseStructureDecoder",
+      "role": "Dense 3D conv upsampler: 16^3 × 8 latent → 64^3 binary occupancy",
+      "file": "ckpts/ss_dec_conv3d_16l8.safetensors",
+      "config": "ckpts/ss_dec_conv3d_16l8.config.json",
+      "bijection": "ckpts/ss_dec_conv3d_16l8.bijection.json",
+      "dtype": "float16",
+      "params": {
+        "out_channels": 1,
+        "latent_channels": 8,
+        "num_res_blocks": 2,
+        "num_res_blocks_middle": 2,
+        "channels": [512, 128, 32]
+      },
+      "weight_provenance": "microsoft/TRELLIS-image-large ckpts/ss_dec_conv3d_16l8_fp16"
+    },
+
+    "shape_slat_flow_model_512": {
+      "class": "SLatFlowModel",
+      "role": "Stage 2: sparse flow-matching DiT predicting shape SLat per active voxel (32-dim) at 512^3",
+      "file": "ckpts/slat_flow_img2shape_dit_1_3B_512.safetensors",
+      "config": "ckpts/slat_flow_img2shape_dit_1_3B_512.config.json",
+      "bijection": "ckpts/slat_flow_img2shape_dit_1_3B_512.bijection.json",
+      "dtype": "bfloat16",
+      "params": {
+        "resolution": 32,
+        "in_channels": 32,
+        "out_channels": 32,
+        "model_channels": 1536,
+        "cond_channels": 1024,
+        "num_blocks": 30,
+        "num_heads": 12,
+        "mlp_ratio": 5.3334,
+        "pe_mode": "rope",
+        "share_mod": true,
+        "qk_rms_norm": true,
+        "qk_rms_norm_cross": true
+      }
+    },
+
+    "shape_slat_flow_model_1024": {
+      "class": "SLatFlowModel",
+      "role": "Stage 2 (1024 variant): sparse DiT at 1024^3 resolution for cascade pipelines",
+      "file": "ckpts/slat_flow_img2shape_dit_1_3B_1024.safetensors",
+      "config": "ckpts/slat_flow_img2shape_dit_1_3B_1024.config.json",
+      "bijection": "ckpts/slat_flow_img2shape_dit_1_3B_1024.bijection.json",
+      "dtype": "bfloat16",
+      "params": {
+        "resolution": 64,
+        "in_channels": 32,
+        "out_channels": 32,
+        "model_channels": 1536,
+        "cond_channels": 1024,
+        "num_blocks": 30,
+        "num_heads": 12,
+        "mlp_ratio": 5.3334,
+        "pe_mode": "rope",
+        "share_mod": true,
+        "qk_rms_norm": true,
+        "qk_rms_norm_cross": true
+      }
+    },
+
+    "shape_slat_decoder": {
+      "class": "FlexiDualGridVaeDecoder",
+      "role": "Sparse UNet VAE decoder: 5-stage, 16× spatial upsample, per-voxel (xyz, intersections, quad_lerp)",
+      "file": "ckpts/shape_dec_next_dc_f16c32.safetensors",
+      "config": "ckpts/shape_dec_next_dc_f16c32.config.json",
+      "bijection": "ckpts/shape_dec_next_dc_f16c32.bijection.json",
+      "dtype": "float16",
+      "params": {
+        "resolution": 256,
+        "model_channels": [1024, 512, 256, 128, 64],
+        "latent_channels": 32,
+        "num_blocks": [4, 16, 8, 4, 0],
+        "block_type": "SparseConvNeXtBlock3d",
+        "up_block_type": "SparseResBlockC2S3d",
+        "out_channels": 7
+      }
+    },
+
+    "shape_slat_encoder": {
+      "class": "FlexiDualGridVaeEncoder",
+      "role": "Training-only: shape VAE encoder (shipped for reference, not used at inference)",
+      "file": "ckpts/shape_enc_next_dc_f16c32.safetensors",
+      "config": "ckpts/shape_enc_next_dc_f16c32.config.json",
+      "bijection": "ckpts/shape_enc_next_dc_f16c32.bijection.json",
+      "dtype": "float16",
+      "inference_used": false
+    },
+
+    "tex_slat_flow_model_512": {
+      "class": "SLatFlowModel",
+      "role": "Stage 3: sparse DiT predicting PBR texture SLat (concat-conditioned on shape latent)",
+      "file": "ckpts/slat_flow_imgshape2tex_dit_1_3B_512.safetensors",
+      "config": "ckpts/slat_flow_imgshape2tex_dit_1_3B_512.config.json",
+      "bijection": "ckpts/slat_flow_imgshape2tex_dit_1_3B_512.bijection.json",
+      "dtype": "bfloat16",
+      "params": {
+        "resolution": 32,
+        "in_channels": 64,
+        "out_channels": 32,
+        "model_channels": 1536,
+        "cond_channels": 1024,
+        "num_blocks": 30,
+        "num_heads": 12,
+        "mlp_ratio": 5.3334,
+        "pe_mode": "rope",
+        "share_mod": true,
+        "qk_rms_norm": true,
+        "qk_rms_norm_cross": true
+      },
+      "inference_used": false,
+      "deferred_note": "Texture pipeline deferred to v2; weights converted and included for completeness"
+    },
+
+    "tex_slat_flow_model_1024": {
+      "class": "SLatFlowModel",
+      "role": "Stage 3 (1024 variant)",
+      "file": "ckpts/slat_flow_imgshape2tex_dit_1_3B_1024.safetensors",
+      "config": "ckpts/slat_flow_imgshape2tex_dit_1_3B_1024.config.json",
+      "bijection": "ckpts/slat_flow_imgshape2tex_dit_1_3B_1024.bijection.json",
+      "dtype": "bfloat16",
+      "inference_used": false
+    },
+
+    "tex_slat_decoder": {
+      "class": "SparseUnetVaeDecoder",
+      "role": "Sparse UNet VAE decoder for PBR (6 channels: RGB base_color + metallic + roughness + alpha)",
+      "file": "ckpts/tex_dec_next_dc_f16c32.safetensors",
+      "config": "ckpts/tex_dec_next_dc_f16c32.config.json",
+      "bijection": "ckpts/tex_dec_next_dc_f16c32.bijection.json",
+      "dtype": "float16",
+      "inference_used": false
+    },
+
+    "tex_slat_encoder": {
+      "class": "SparseUnetVaeEncoder",
+      "role": "Training-only",
+      "file": "ckpts/tex_enc_next_dc_f16c32.safetensors",
+      "config": "ckpts/tex_enc_next_dc_f16c32.config.json",
+      "bijection": "ckpts/tex_enc_next_dc_f16c32.bijection.json",
+      "dtype": "float16",
+      "inference_used": false
+    }
+  },
+
+  "image_cond_model": {
+    "name": "DinoV3FeatureExtractor",
+    "hf_id": "facebook/dinov3-vitl16-pretrain-lvd1689m",
+    "backend": "torch-transformers (CPU/MPS)",
+    "note": "Runs in torch; ~300M params; feeds (1, N, 1024) patch features to every DiT via cross-attention. HF-gated, requires access."
+  },
+
+  "rembg_model": {
+    "name": "BiRefNet",
+    "hf_id": "briaai/RMBG-2.0",
+    "backend": "torch-mps",
+    "inference_used": false,
+    "note": "Pre-composited RGBA inputs bypass rembg; only used when input image has no alpha channel."
+  },
+
+  "samplers": {
+    "sparse_structure_sampler": {
+      "name": "FlowEulerGuidanceIntervalSampler",
+      "steps": 12,
+      "guidance_strength": 7.5,
+      "guidance_rescale": 0.7,
+      "guidance_interval": [0.6, 1.0],
+      "rescale_t": 5.0
+    },
+    "shape_slat_sampler": {
+      "name": "FlowEulerGuidanceIntervalSampler",
+      "steps": 12,
+      "guidance_strength": 7.5,
+      "guidance_rescale": 0.5,
+      "guidance_interval": [0.6, 1.0],
+      "rescale_t": 3.0
+    },
+    "tex_slat_sampler": {
+      "name": "FlowEulerGuidanceIntervalSampler",
+      "steps": 12,
+      "guidance_strength": 1.0,
+      "guidance_rescale": 0.0,
+      "guidance_interval": [0.6, 0.9],
+      "rescale_t": 3.0
+    }
+  },
+
+  "conversion": {
+    "source": "microsoft/TRELLIS.2-4B",
+    "scripts": ["scripts/convert_weights.py", "scripts/prefix_checkpoints.py"],
+    "notes": [
+      "DiT weights: bf16 → bf16 (identity dtype, names remapped e.g. mlp.0 → mlp.layers.0 for MLX Sequential).",
+      "Sparse conv weights are stored as (Co, Kd, Kh, Kw, Ci) already in upstream (per conv_flex_gemm.py:34); preserved.",
+      "Dense conv3d weights (SS decoder) permuted from torch (Co, Ci, Kd, Kh, Kw) to MLX NDHWC (Co, Kd, Kh, Kw, Ci).",
+      "After conversion, `prefix_checkpoints.py` re-saves every shard with its tensors prefixed by a component tag so a single unified `model.safetensors.index.json` can address all 4418 tensors without name collisions (tensor names like `blocks.0.self_attn.to_qkv.weight` repeat across the 3 DiTs)."
+    ]
+  }
+}

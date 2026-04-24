@@ -43,6 +43,42 @@ def _load_config(path: Path) -> dict:
     return json.loads(path.read_text())
 
 
+# Prefix stripped on load; kept in sync with scripts/prefix_checkpoints.py
+_CKPT_PREFIXES: dict[str, str] = {
+    "ss_flow_img_dit_1_3B_64.safetensors":                  "ss_flow",
+    "ss_dec_conv3d_16l8.safetensors":                       "ss_dec",
+    "slat_flow_img2shape_dit_1_3B_512.safetensors":         "shape_flow_512",
+    "slat_flow_img2shape_dit_1_3B_1024.safetensors":        "shape_flow_1024",
+    "slat_flow_imgshape2tex_dit_1_3B_512.safetensors":      "tex_flow_512",
+    "slat_flow_imgshape2tex_dit_1_3B_1024.safetensors":     "tex_flow_1024",
+    "shape_dec_next_dc_f16c32.safetensors":                 "shape_dec",
+    "shape_enc_next_dc_f16c32.safetensors":                 "shape_enc",
+    "tex_dec_next_dc_f16c32.safetensors":                   "tex_dec",
+    "tex_enc_next_dc_f16c32.safetensors":                   "tex_enc",
+}
+
+
+def _load_weights_prefixed(module, path: Path) -> None:
+    """Load MLX safetensors where every tensor is prefixed `<component>.`; strip the
+    prefix so `module.load_weights` sees the bare submodule names it expects.
+
+    Works with both prefixed (unified-index) and un-prefixed legacy shards.
+    """
+    path = Path(path)
+    prefix = _CKPT_PREFIXES.get(path.name)
+    if prefix is None:
+        module.load_weights(str(path))
+        return
+    raw = mx.load(str(path))
+    pfx = prefix + "."
+    if all(k.startswith(pfx) for k in raw):
+        stripped = [(k[len(pfx):], v) for k, v in raw.items()]
+        module.load_weights(stripped)
+    else:
+        # Legacy un-prefixed file; load directly.
+        module.load_weights(str(path))
+
+
 class Trellis2ImageTo3DPipelineMLX:
     """All-in-memory v1 pipeline. ~10 GB of MLX weights + ~1 GB torch DINOv3."""
 
@@ -81,25 +117,25 @@ class Trellis2ImageTo3DPipelineMLX:
     def _load_ss_flow(self) -> SparseStructureFlowModel:
         cfg = _load_config(self.ckpt_dir / "ss_flow_img_dit_1_3B_64.config.json")
         m = SparseStructureFlowModel(**_strip_unused(cfg["args"]))
-        m.load_weights(str(self.ckpt_dir / "ss_flow_img_dit_1_3B_64.safetensors"))
+        _load_weights_prefixed(m, self.ckpt_dir / "ss_flow_img_dit_1_3B_64.safetensors")
         return m
 
     def _load_ss_dec(self) -> SparseStructureDecoder:
         cfg = _load_config(self.ckpt_dir / "ss_dec_conv3d_16l8.config.json")
         m = SparseStructureDecoder(**cfg["args"])
-        m.load_weights(str(self.ckpt_dir / "ss_dec_conv3d_16l8.safetensors"))
+        _load_weights_prefixed(m, self.ckpt_dir / "ss_dec_conv3d_16l8.safetensors")
         return m
 
     def _load_shape_flow(self) -> SLatFlowModel:
         cfg = _load_config(self.ckpt_dir / "slat_flow_img2shape_dit_1_3B_512.config.json")
         m = SLatFlowModel(**_strip_unused(cfg["args"]))
-        m.load_weights(str(self.ckpt_dir / "slat_flow_img2shape_dit_1_3B_512.safetensors"))
+        _load_weights_prefixed(m, self.ckpt_dir / "slat_flow_img2shape_dit_1_3B_512.safetensors")
         return m
 
     def _load_shape_vae(self) -> FlexiDualGridVaeDecoder:
         cfg = _load_config(self.ckpt_dir / "shape_dec_next_dc_f16c32.config.json")
         m = FlexiDualGridVaeDecoder(**cfg["args"])
-        m.load_weights(str(self.ckpt_dir / "shape_dec_next_dc_f16c32.safetensors"))
+        _load_weights_prefixed(m, self.ckpt_dir / "shape_dec_next_dc_f16c32.safetensors")
         return m
 
     # --- core steps --------------------------------------------------------
