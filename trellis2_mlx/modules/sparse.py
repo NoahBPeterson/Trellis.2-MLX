@@ -40,9 +40,12 @@ def build_neighbor_map(
     F = coords_np.shape[0]
     # Build dict: (batch, x, y, z) -> row
     table = {tuple(row): i for i, row in enumerate(coords_np.tolist())}
-    offs = [(dx, dy, dz) for dz in (-1, 0, 1) for dy in (-1, 0, 1) for dx in (-1, 0, 1)]
-    # kernel unpack: index k = kz*9 + ky*3 + kx with (kx, ky, kz) in [0..2];
-    # offset value = (k% - 1, ky% - 1, kz% - 1) — matches the upstream weight layout
+    # Upstream weight layout is (Co, Kx, Ky, Kz, Ci): kernel axis 0 maps to coord
+    # axis x, axis 1 to y, axis 2 to z. In the flat reshape to (Co, K^3, Ci),
+    # flat index = kx * K^2 + ky * K + kz, so kx is outermost (slowest-varying),
+    # kz is innermost (fastest). We enumerate offsets in matching order: dz varies
+    # fastest in the inner loop, dx varies slowest in the outer loop.
+    offs = [(dx, dy, dz) for dx in (-1, 0, 1) for dy in (-1, 0, 1) for dz in (-1, 0, 1)]
     nmap = np.full((F, 27), F, dtype=np.int32)
     for kidx, (dx, dy, dz) in enumerate(offs):
         for i, (b, x, y, z) in enumerate(coords_np.tolist()):
