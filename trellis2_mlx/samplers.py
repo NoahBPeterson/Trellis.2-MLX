@@ -141,6 +141,14 @@ class FlowEulerGuidanceIntervalSampler:
             # Euler step: x_{t_prev} = x_t - (t - t_prev) * v
             dt = t_now - t_prev
             sample = _sub(sample, _mul(dt, pred_v))
+            # Force materialization at each step. Without this, MLX queues all 12
+            # steps lazily and tqdm fills instantly while the user waits 2+ minutes
+            # on the next mx.eval(). Each step depends on the previous (Euler integration),
+            # so per-step eval doesn't cost any cross-step fusion.
+            if isinstance(sample, SparseTensor):
+                mx.eval(sample.feats)
+            else:
+                mx.eval(sample)
             hist_x_t.append(sample)
             hist_x_0.append(self._v_to_xstart(sample, t_prev, pred_v))
         return {"samples": sample, "pred_x_t": hist_x_t, "pred_x_0": hist_x_0}

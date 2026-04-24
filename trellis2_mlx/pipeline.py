@@ -94,6 +94,49 @@ def _load_weights_prefixed(module, path: Path, cast_dtype: Optional["mx.Dtype"] 
     module.load_weights(items)
 
 
+# Per-pipeline-type stage weight tables for the live progress / ETA display.
+# Calibrated against measured M1 Pro fp16 runs on T.png. Numbers don't have to
+# be exact — the ETA self-corrects as stages complete (we use elapsed/done_frac
+# extrapolation, so a stage that takes 2x its budget just stretches the remainder).
+_STAGE_WEIGHTS: dict[str, dict[str, float]] = {
+    "512":          {"preprocess": 0.02,  "dino": 0.02,  "ss": 0.46, "shape": 0.42, "vae": 0.08},
+    "1024":         {"preprocess": 0.01,  "dino": 0.005, "ss": 0.09, "shape": 0.85, "vae": 0.045},
+    "1024_cascade": {"preprocess": 0.01,  "dino": 0.006, "ss": 0.10, "shape": 0.82, "vae": 0.064},
+    "1536_cascade": {"preprocess": 0.01,  "dino": 0.006, "ss": 0.07, "shape": 0.88, "vae": 0.034},
+}
+
+
+def _fmt_duration(seconds: float) -> str:
+    seconds = max(0, int(seconds))
+    if seconds < 60:
+        return f"{seconds}s"
+    return f"{seconds // 60}m{seconds % 60:02d}s"
+
+
+class _ProgressTracker:
+    """Tracks weighted stage completion and projects ETA from elapsed×inv-fraction."""
+
+    def __init__(self, weights: dict[str, float]):
+        self.weights = weights
+        self.t0 = None
+        self.done_frac = 0.0
+
+    def start(self) -> None:
+        import time as _time
+        self.t0 = _time.time()
+
+    def stage_done(self, stage: str) -> str:
+        """Mark a stage finished and return a `[XX% • elapsed YsZs • ETA M:SS]` suffix."""
+        import time as _time
+        self.done_frac = min(1.0, self.done_frac + self.weights.get(stage, 0.0))
+        elapsed = _time.time() - (self.t0 or _time.time())
+        if self.done_frac > 0.001:
+            total_est = elapsed / self.done_frac
+            eta = max(0.0, total_est - elapsed)
+            return f"[{self.done_frac*100:5.1f}% • elapsed {_fmt_duration(elapsed)} • ETA {_fmt_duration(eta)}]"
+        return f"[  ?  % • elapsed {_fmt_duration(elapsed)} • ETA ?]"
+
+
 # pipeline_type → plan describing which flows/conds/resolutions to use.
 # - flow_lr/flow_hr: ckpt stems of the shape flow model(s); equal when non-cascade.
 # - ss_target_res: the SS-decoder occupancy is maxpooled from 64^3 down to this.
@@ -375,43 +418,45 @@ class Trellis2ImageTo3DPipelineMLX:
         return out
 
     def run(self, image: Image.Image, seed: int = 42) -> Tuple[np.ndarray, np.ndarray]:
-        """image (RGBA) → (vertices (V, 3), faces (T, 3))."""
+        """image (RGBA or RGB) → (vertices (V, 3), faces (T, 3))."""
         import time as _time
+        weights = _STAGE_WEIGHTS.get(self.pipeline_type, _STAGE_WEIGHTS["512"])
+        prog = _ProgressTracker(weights)
+        prog.start()
+
         t0 = _time.time()
         print("[1/5] preprocess")
         pre = self._preprocess_with_rembg(image)
-        t1 = _time.time(); print(f"      +{t1-t0:.1f}s")
+        t1 = _time.time(); print(f"      +{t1-t0:.1f}s   {prog.stage_done('preprocess')}")
+
         print(f"[2/5] DINOv3 image conditioning @ {list(self.cond_sizes)}")
         conds = self._dino_conds(pre)
-        cond_512, neg_512 = conds[self.cond_sizes[0]]  # always the first (lowest) is used for SS flow
-        t2 = _time.time(); print(f"      cond shapes: {[tuple(v[0].shape) for v in conds.values()]}   +{t2-t1:.1f}s")
+        cond_512, neg_512 = conds[self.cond_sizes[0]]
+        t2 = _time.time(); print(f"      cond shapes: {[tuple(v[0].shape) for v in conds.values()]}   +{t2-t1:.1f}s   {prog.stage_done('dino')}")
 
         print("[3/5] sparse structure flow + decode")
         occupancy = self._sample_ss(cond_512, neg_512, seed)
         coords = self._coords_from_occupancy(occupancy, self.ss_target_res)
-        t3 = _time.time(); print(f"      active voxels at {self.ss_target_res}^3: {coords.shape[0]}   +{t3-t2:.1f}s")
+        t3 = _time.time(); print(f"      active voxels at {self.ss_target_res}^3: {coords.shape[0]}   +{t3-t2:.1f}s   {prog.stage_done('ss')}")
 
         print("[4/5] shape SLat flow" + (" (cascade)" if self.is_cascade else ""))
         if self.is_cascade:
-            # LR uses 512 cond; HR uses 1024 cond.
             cond_lr, neg_lr = conds[512]
             cond_hr, neg_hr = conds[1024]
             slat, effective_res = self._sample_shape_slat_cascade(
                 cond_lr, neg_lr, cond_hr, neg_hr, coords, seed
             )
-            # If cascade had to cap hr_resolution (1536 → <1536), follow it down for VAE too.
             vae_res = effective_res
         else:
-            # Non-cascade: cond_sizes has exactly one entry; that's what the shape flow expects.
             cond, neg = conds[self.cond_sizes[0]]
             slat = self._sample_shape_slat(self.shape_flow_hr, cond, neg, coords, seed + 1)
             mx.eval(slat.feats)
             vae_res = self.vae_res
-        t4 = _time.time(); print(f"      slat feats: {tuple(slat.feats.shape)}   +{t4-t3:.1f}s")
+        t4 = _time.time(); print(f"      slat feats: {tuple(slat.feats.shape)}   +{t4-t3:.1f}s   {prog.stage_done('shape')}")
 
         print(f"[5/5] shape VAE decode + dual-grid mesh extract @ {vae_res}^3")
         V, F = self._decode_shape(slat, vae_res)
-        t5 = _time.time(); print(f"      mesh: {V.shape[0]} verts, {F.shape[0]} faces   +{t5-t4:.1f}s")
+        t5 = _time.time(); print(f"      mesh: {V.shape[0]} verts, {F.shape[0]} faces   +{t5-t4:.1f}s   {prog.stage_done('vae')}")
         return V, F
 
     @classmethod
