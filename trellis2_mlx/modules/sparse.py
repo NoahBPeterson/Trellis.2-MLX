@@ -40,12 +40,14 @@ def build_neighbor_map(
     F = coords_np.shape[0]
     # Build dict: (batch, x, y, z) -> row
     table = {tuple(row): i for i, row in enumerate(coords_np.tolist())}
-    # The S2C/C2S subpixel encoding is `sub = (x%f) + (y%f)*f + (z%f)*f^2` —
-    # x is the fastest-varying index in the flat 8-slot packing. For the conv
-    # kernel to stay consistent with this convention during training, the
-    # kernel flat layout must also have x-fastest: k = kz*K^2 + ky*K + kx.
-    # We enumerate offsets with dx innermost (fastest).
-    offs = [(dx, dy, dz) for dz in (-1, 0, 1) for dy in (-1, 0, 1) for dx in (-1, 0, 1)]
+    # Upstream weight is a torch Conv3d weight (Co, Ci, Kd, Kh, Kw) permuted to
+    # (Co, Kd, Kh, Kw, Ci). In torch's convention, the three spatial kernel
+    # axes Kd, Kh, Kw map to the three coord axes in order — i.e. Kd↔axis0,
+    # Kh↔axis1, Kw↔axis2 (kept generic to not bias the x/y/z labeling).
+    # After reshape (Co, K^3, Ci) the flat index is `k = kd*K^2 + kh*K + kw`,
+    # so kw is innermost (fastest-varying). We enumerate offsets with d_axis2
+    # innermost to match: cross-checked against torch dense conv3d reference.
+    offs = [(dx, dy, dz) for dx in (-1, 0, 1) for dy in (-1, 0, 1) for dz in (-1, 0, 1)]
     nmap = np.full((F, 27), F, dtype=np.int32)
     for kidx, (dx, dy, dz) in enumerate(offs):
         for i, (b, x, y, z) in enumerate(coords_np.tolist()):

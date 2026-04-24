@@ -34,12 +34,12 @@ def _naive_submconv3d(feats, coords, weight, bias):
     Co = weight.shape[0]
     table = {tuple(row.tolist()): i for i, row in enumerate(coords)}
     out = np.zeros((F, Co), dtype=feats.dtype)
-    # kernel offsets in matching order to build_neighbor_map: k = kz*9 + ky*3 + kx
-    # (to stay consistent with S2C/C2S subpixel ordering: x fastest-varying)
-    offs = [(dx, dy, dz) for dz in (-1, 0, 1) for dy in (-1, 0, 1) for dx in (-1, 0, 1)]
+    # kernel offsets matching build_neighbor_map: k = kx*9 + ky*3 + kz
+    # (torch Conv3d convention: kernel dim 0 ↔ first coord axis, dim 2 ↔ last)
+    offs = [(dx, dy, dz) for dx in (-1, 0, 1) for dy in (-1, 0, 1) for dz in (-1, 0, 1)]
     for kidx, (dx, dy, dz) in enumerate(offs):
         kx, ky, kz = dx + 1, dy + 1, dz + 1
-        wk = weight[:, kz, ky, kx, :]  # (Co, Ci)
+        wk = weight[:, kx, ky, kz, :]  # (Co, Ci)
         for i, (b, x, y, z) in enumerate(coords.tolist()):
             j = table.get((b, x + dx, y + dy, z + dz))
             if j is not None:
