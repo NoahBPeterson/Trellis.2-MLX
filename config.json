@@ -7,6 +7,7 @@
   "task": "image-to-3d",
 
   "loading_note": "This repo does NOT load via transformers.AutoModel.from_pretrained — the `transformers` library has no MLX backend. Use `trellis2_mlx.pipeline.Trellis2ImageTo3DPipelineMLX.from_pretrained(ckpt_dir=..., pipeline_json=...)` from the `trellis2-mlx` package.",
+  "dit_compute_dtype_note": "Pass `dit_compute_dtype='float16'` to `from_pretrained` (or `--dit-dtype float16` to run_example.py) to cast DiT weights to fp16 at load time for ~25-32% speedup on Apple Silicon. Verified essentially-lossless on T.png 512: median vertex displacement 1e-6 (sub-pixel). Defaults to bfloat16 for strict parity with upstream.",
   "tensor_index": "model.safetensors.index.json",
   "tensor_name_convention": "Each component's tensors are prefixed with a component tag (`ss_flow.`, `shape_dec.`, `tex_flow_512.`, …) so all 4418 tensors across the 10 shards live in a single unified namespace. The pipeline's weight-loader strips the prefix at load time. Per-file `*.bijection.json` records the torch↔MLX mapping against the un-prefixed names.",
 

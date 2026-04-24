@@ -179,6 +179,21 @@ Mesh output: 6,946,823 verts / 14,091,496 faces. ~7% faster than direct `1024` b
 
 The flow DiTs currently dominate wall-clock; the sparse VAE has been tuned (batched `np.searchsorted` neighbor maps, per-kernel conv fused via gather, vectorized C2S subdivision) and micro-benchmarks in the 900–3000 GFLOPS range per submanifold conv. The 1024 shape-flow cost grows roughly with the square of the token count (self-attention), so the difference between 512 and 1024 is mostly attention compute. Further DiT-side optimization is planned — see [Roadmap](#roadmap).
 
+### Optional: `--dit-dtype float16` (opt-in, ~25–32% faster)
+
+Apple's Metal SDPA and matmul kernels run ~1.3× faster on fp16 inputs than on bf16. Our upstream DiT weights ship as bf16, but can be cast to fp16 at load time via `--dit-dtype float16`. Measured on T.png, 512 pipeline:
+
+|             | bf16 (default) | fp16 (opt-in) |
+| ----------- | -------------: | ------------: |
+| Total       |          410s  |          278s  (**–32%**) |
+| Verts       |       1651404  |       1651540  (+0.008%) |
+| Faces       |       3501928  |       3501882  (–0.001%) |
+| Bbox        |      identical |      identical (4 decimals) |
+| Median vertex displacement vs bf16 | — | **1e-6**  (sub-pixel) |
+| Max vertex displacement            | — | 0.0019 (0.19% of extent) |
+
+Essentially lossless. Off by default for strict numerical parity with upstream; opt in via the CLI flag or `dit_compute_dtype="float16"` to `from_pretrained`.
+
 For comparison, upstream on an NVIDIA H100 reports ~3s at 512³ and ~17s at 1024³. We are not trying to match that; the objective is "works on a MacBook."
 
 ---
@@ -302,8 +317,9 @@ Checks:
 ## Roadmap
 
 **Immediate:**
-- Flow-DiT perf pass — currently ~87% of wall-clock on `512`, ~86% on `1024`. Attention-level tuning, possibly a kernel for the shared `adaLN_modulation` projection, and reducing unnecessary `mx.eval` barriers.
+- Int8/Int4 weight quantization via `mx.quantize` — expected 1.5–2× further speedup on the flow stages by cutting weight memory bandwidth.
 - `pipeline_type="1536_cascade"` smoke — the code path is wired (same as `1024_cascade` with `hr_resolution=1536`), but the token count is expected to blow past the 49k cap on most inputs. Upstream's cap-downgrade fallback is implemented; needs a machine with 64+ GB to verify.
+- Native-MLX port of DINOv3 to remove the torch dependency at inference time (saves the ~3–4s torch-CPU cost).
 
 **v2:**
 - Texture pipeline (`Trellis2ImageToTexturedGLBPipelineMLX`). Backbone + VAE arch is identical to shape; concat-condition on shape latent; weights are already converted in `ckpts/*tex*.safetensors`.

@@ -26,15 +26,18 @@ def main() -> int:
     p.add_argument("--seed", type=int, default=42)
     p.add_argument("--pipeline-type", type=str, default="512")
     p.add_argument("--dino-device", type=str, default="cpu")
+    p.add_argument("--dit-dtype", type=str, default="bfloat16", choices=["bfloat16", "float16"],
+                   help="Compute dtype for the flow DiT weights. fp16 is ~25%% faster but introduces numerical drift; verify mesh quality before relying on it.")
     args = p.parse_args()
 
-    print(f"Loading pipeline from {ROOT / 'ckpts'} ({args.pipeline_type})...")
+    print(f"Loading pipeline from {ROOT / 'ckpts'} ({args.pipeline_type}, dit_dtype={args.dit_dtype})...")
     t0 = time.time()
     pipe = Trellis2ImageTo3DPipelineMLX.from_pretrained(
         ckpt_dir=ROOT / "ckpts",
         pipeline_json=ROOT / "weights" / "pipeline.json",
         pipeline_type=args.pipeline_type,
         dino_device=args.dino_device,
+        dit_compute_dtype=args.dit_dtype,
     )
     print(f"loaded in {time.time() - t0:.1f}s")
 

@@ -63,25 +63,34 @@ _CKPT_PREFIXES: dict[str, str] = {
 }
 
 
-def _load_weights_prefixed(module, path: Path) -> None:
+def _load_weights_prefixed(module, path: Path, cast_dtype: Optional["mx.Dtype"] = None) -> None:
     """Load MLX safetensors where every tensor is prefixed `<component>.`; strip the
     prefix so `module.load_weights` sees the bare submodule names it expects.
 
-    Works with both prefixed (unified-index) and un-prefixed legacy shards.
+    Optionally cast every loaded tensor to `cast_dtype` (e.g., to convert bf16
+    DiT weights to fp16 for faster Metal SDPA). Cast happens before load, so the
+    target dtype lives on-disk-equivalent in memory — no extra copy at use time.
     """
     path = Path(path)
     prefix = _CKPT_PREFIXES.get(path.name)
     if prefix is None:
-        module.load_weights(str(path))
+        if cast_dtype is None:
+            module.load_weights(str(path))
+        else:
+            raw = mx.load(str(path))
+            casted = [(k, v.astype(cast_dtype)) for k, v in raw.items()]
+            module.load_weights(casted)
         return
     raw = mx.load(str(path))
     pfx = prefix + "."
     if all(k.startswith(pfx) for k in raw):
-        stripped = [(k[len(pfx):], v) for k, v in raw.items()]
-        module.load_weights(stripped)
+        items = [(k[len(pfx):], v) for k, v in raw.items()]
     else:
-        # Legacy un-prefixed file; load directly.
-        module.load_weights(str(path))
+        # Legacy un-prefixed file
+        items = list(raw.items())
+    if cast_dtype is not None:
+        items = [(k, v.astype(cast_dtype)) for k, v in items]
+    module.load_weights(items)
 
 
 # pipeline_type → plan describing which flows/conds/resolutions to use.
@@ -130,11 +139,15 @@ class Trellis2ImageTo3DPipelineMLX:
         pipeline_type: str = "512",
         dino_device: str = "cpu",
         max_num_tokens: int = 49152,
+        dit_compute_dtype: str = "bfloat16",
     ):
         self.ckpt_dir = Path(ckpt_dir)
         self.pipeline_type = pipeline_type
         self.pipeline_config = pipeline_config
         self.max_num_tokens = max_num_tokens
+        if dit_compute_dtype not in ("bfloat16", "float16"):
+            raise ValueError(f"dit_compute_dtype must be 'bfloat16' or 'float16', got {dit_compute_dtype!r}")
+        self.dit_compute_dtype = getattr(mx, dit_compute_dtype)
         if pipeline_type not in _PIPELINE_PARAMS:
             raise ValueError(f"unknown pipeline_type {pipeline_type!r}; expected one of {list(_PIPELINE_PARAMS)}")
         p = _PIPELINE_PARAMS[pipeline_type]
@@ -172,10 +185,11 @@ class Trellis2ImageTo3DPipelineMLX:
     def _load_ss_flow(self) -> SparseStructureFlowModel:
         cfg = _load_config(self.ckpt_dir / "ss_flow_img_dit_1_3B_64.config.json")
         m = SparseStructureFlowModel(**_strip_unused(cfg["args"]))
-        _load_weights_prefixed(m, self.ckpt_dir / "ss_flow_img_dit_1_3B_64.safetensors")
+        _load_weights_prefixed(m, self.ckpt_dir / "ss_flow_img_dit_1_3B_64.safetensors", cast_dtype=self.dit_compute_dtype)
         return m
 
     def _load_ss_dec(self) -> SparseStructureDecoder:
+        # SS decoder is always fp16 (small, already converted; never bf16).
         cfg = _load_config(self.ckpt_dir / "ss_dec_conv3d_16l8.config.json")
         m = SparseStructureDecoder(**cfg["args"])
         _load_weights_prefixed(m, self.ckpt_dir / "ss_dec_conv3d_16l8.safetensors")
@@ -184,10 +198,11 @@ class Trellis2ImageTo3DPipelineMLX:
     def _load_shape_flow(self, stem: str) -> SLatFlowModel:
         cfg = _load_config(self.ckpt_dir / f"{stem}.config.json")
         m = SLatFlowModel(**_strip_unused(cfg["args"]))
-        _load_weights_prefixed(m, self.ckpt_dir / f"{stem}.safetensors")
+        _load_weights_prefixed(m, self.ckpt_dir / f"{stem}.safetensors", cast_dtype=self.dit_compute_dtype)
         return m
 
     def _load_shape_vae(self) -> FlexiDualGridVaeDecoder:
+        # Shape VAE is already fp16 on disk; do not re-cast.
         cfg = _load_config(self.ckpt_dir / "shape_dec_next_dc_f16c32.config.json")
         m = FlexiDualGridVaeDecoder(**cfg["args"])
         _load_weights_prefixed(m, self.ckpt_dir / "shape_dec_next_dc_f16c32.safetensors")
@@ -382,6 +397,7 @@ class Trellis2ImageTo3DPipelineMLX:
         pipeline_json: str | Path | None = None,
         pipeline_type: str = "512",
         dino_device: str = "cpu",
+        dit_compute_dtype: str = "bfloat16",
     ) -> "Trellis2ImageTo3DPipelineMLX":
         ckpt_dir = Path(ckpt_dir)
         if pipeline_json is None:
@@ -389,4 +405,8 @@ class Trellis2ImageTo3DPipelineMLX:
             if not pipeline_json.exists():
                 pipeline_json = ckpt_dir / "pipeline.json"
         cfg = _load_config(Path(pipeline_json))
-        return cls(ckpt_dir=ckpt_dir, pipeline_config=cfg["args"], pipeline_type=pipeline_type, dino_device=dino_device)
+        return cls(
+            ckpt_dir=ckpt_dir, pipeline_config=cfg["args"],
+            pipeline_type=pipeline_type, dino_device=dino_device,
+            dit_compute_dtype=dit_compute_dtype,
+        )
