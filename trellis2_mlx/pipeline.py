@@ -32,7 +32,7 @@ from PIL import Image
 
 from .image_cond import DinoV3FeatureExtractor
 from .models.flow_dit import SLatFlowModel, SparseStructureFlowModel
-from .models.sparse_vae import FlexiDualGridVaeDecoder
+from .models.sparse_vae import FlexiDualGridVaeDecoder, SparseUnetVaeDecoder
 from .models.ss_decoder import SparseStructureDecoder
 from .modules.sparse_tensor import SparseTensor
 from .postprocess.dual_grid import flexible_dual_grid_to_mesh
@@ -105,6 +105,16 @@ _STAGE_WEIGHTS: dict[str, dict[str, float]] = {
     "1536_cascade": {"preprocess": 0.01,  "dino": 0.006, "ss": 0.07, "shape": 0.88, "vae": 0.034},
 }
 
+# When `with_pbr=True`, stages 6+7 (texture flow + texture VAE) ~ same scale as
+# stages 4+5 since they reuse the shape backbone shapes. Approximation:
+# tex_flow ≈ shape_flow / 2 (no CFG for tex), tex_vae ≈ shape_vae.
+def _stage_weights_pbr(base: dict[str, float]) -> dict[str, float]:
+    # Compute weights so shape stages, plus tex_flow≈shape*0.5 and tex_vae≈vae,
+    # all sum to 1.0.
+    raw = {**base, "tex_flow": base["shape"] * 0.5, "tex_vae": base["vae"]}
+    s = sum(raw.values())
+    return {k: v / s for k, v in raw.items()}
+
 
 def _fmt_duration(seconds: float) -> str:
     seconds = max(0, int(seconds))
@@ -147,18 +157,24 @@ _PIPELINE_PARAMS: dict[str, dict] = {
     "512": {
         "flow_lr": "slat_flow_img2shape_dit_1_3B_512",
         "flow_hr": "slat_flow_img2shape_dit_1_3B_512",
+        "tex_flow": "slat_flow_imgshape2tex_dit_1_3B_512",
+        "tex_cond_size": 512,
         "cond_sizes": (512,),
         "ss_target_res": 32, "vae_res": 512, "cascade": False,
     },
     "1024": {
         "flow_lr": "slat_flow_img2shape_dit_1_3B_1024",
         "flow_hr": "slat_flow_img2shape_dit_1_3B_1024",
+        "tex_flow": "slat_flow_imgshape2tex_dit_1_3B_1024",
+        "tex_cond_size": 1024,
         "cond_sizes": (1024,),
         "ss_target_res": 64, "vae_res": 1024, "cascade": False,
     },
     "1024_cascade": {
         "flow_lr": "slat_flow_img2shape_dit_1_3B_512",
         "flow_hr": "slat_flow_img2shape_dit_1_3B_1024",
+        "tex_flow": "slat_flow_imgshape2tex_dit_1_3B_1024",
+        "tex_cond_size": 1024,
         "cond_sizes": (512, 1024),
         "ss_target_res": 32, "vae_res": 1024, "cascade": True,
         "lr_resolution": 512, "hr_resolution": 1024,
@@ -166,6 +182,8 @@ _PIPELINE_PARAMS: dict[str, dict] = {
     "1536_cascade": {
         "flow_lr": "slat_flow_img2shape_dit_1_3B_512",
         "flow_hr": "slat_flow_img2shape_dit_1_3B_1024",
+        "tex_flow": "slat_flow_imgshape2tex_dit_1_3B_1024",
+        "tex_cond_size": 1024,
         "cond_sizes": (512, 1024),
         "ss_target_res": 32, "vae_res": 1536, "cascade": True,
         "lr_resolution": 512, "hr_resolution": 1536,
@@ -185,12 +203,14 @@ class Trellis2ImageTo3DPipelineMLX:
         rembg_device: str = "auto",
         max_num_tokens: int = 49152,
         dit_compute_dtype: str = "bfloat16",
+        with_pbr: bool = False,
     ):
         self.ckpt_dir = Path(ckpt_dir)
         self.pipeline_type = pipeline_type
         self.pipeline_config = pipeline_config
         self.max_num_tokens = max_num_tokens
         self.rembg_device = rembg_device
+        self.with_pbr = with_pbr
         self._rembg_model_name: str = pipeline_config.get("rembg_model", {}).get("args", {}).get("model_name", "briaai/RMBG-2.0")
         if dit_compute_dtype not in ("bfloat16", "float16"):
             raise ValueError(f"dit_compute_dtype must be 'bfloat16' or 'float16', got {dit_compute_dtype!r}")
@@ -204,8 +224,9 @@ class Trellis2ImageTo3DPipelineMLX:
         self.lr_resolution: Optional[int] = p.get("lr_resolution")
         self.hr_resolution: Optional[int] = p.get("hr_resolution")
         self.cond_sizes: tuple[int, ...] = p["cond_sizes"]
+        self._tex_cond_size: int = p["tex_cond_size"]
 
-        # Models
+        # Models — shape side (always loaded)
         self.ss_flow = self._load_ss_flow()
         self.ss_dec = self._load_ss_dec()
         self.shape_flow_lr = self._load_shape_flow(p["flow_lr"])
@@ -214,6 +235,18 @@ class Trellis2ImageTo3DPipelineMLX:
         else:
             self.shape_flow_hr = self._load_shape_flow(p["flow_hr"])
         self.shape_vae = self._load_shape_vae()
+
+        # Models — texture side (only when with_pbr=True; +3.6 GB at fp16)
+        self.tex_flow: Optional[SLatFlowModel] = None
+        self.tex_vae: Optional[SparseUnetVaeDecoder] = None
+        if with_pbr:
+            self.tex_flow = self._load_shape_flow(p["tex_flow"])  # same loader (SLatFlowModel arch)
+            self.tex_vae = self._load_tex_vae()
+            # Texture flow needs both 512 and 1024 conds depending on pipeline_type;
+            # add tex cond size to the cond_sizes set if not already there.
+            if self._tex_cond_size not in self.cond_sizes:
+                self.cond_sizes = tuple(sorted(set(list(self.cond_sizes) + [self._tex_cond_size])))
+
         self.dino = DinoV3FeatureExtractor(
             pipeline_config["image_cond_model"]["args"]["model_name"],
             image_size=self.cond_sizes[0],
@@ -223,9 +256,12 @@ class Trellis2ImageTo3DPipelineMLX:
         # Samplers
         self.sampler = FlowEulerGuidanceIntervalSampler(sigma_min=1e-5)
 
-        # Normalization stats for shape SLat
+        # Normalization stats for shape SLat (always) and texture SLat (when PBR is on)
         self.shape_slat_mean = mx.array(pipeline_config["shape_slat_normalization"]["mean"], dtype=mx.float32)
         self.shape_slat_std = mx.array(pipeline_config["shape_slat_normalization"]["std"], dtype=mx.float32)
+        if with_pbr:
+            self.tex_slat_mean = mx.array(pipeline_config["tex_slat_normalization"]["mean"], dtype=mx.float32)
+            self.tex_slat_std = mx.array(pipeline_config["tex_slat_normalization"]["std"], dtype=mx.float32)
 
     # --- model loaders -----------------------------------------------------
 
@@ -253,6 +289,14 @@ class Trellis2ImageTo3DPipelineMLX:
         cfg = _load_config(self.ckpt_dir / "shape_dec_next_dc_f16c32.config.json")
         m = FlexiDualGridVaeDecoder(**cfg["args"])
         _load_weights_prefixed(m, self.ckpt_dir / "shape_dec_next_dc_f16c32.safetensors")
+        return m
+
+    def _load_tex_vae(self) -> SparseUnetVaeDecoder:
+        # Texture VAE: out_channels=6 (PBR), pred_subdiv=False (uses shape decoder's
+        # subdivision masks via guide_subs at decode time). Already fp16 on disk.
+        cfg = _load_config(self.ckpt_dir / "tex_dec_next_dc_f16c32.config.json")
+        m = SparseUnetVaeDecoder(**cfg["args"])
+        _load_weights_prefixed(m, self.ckpt_dir / "tex_dec_next_dc_f16c32.safetensors")
         return m
 
     # --- core steps --------------------------------------------------------
@@ -372,8 +416,49 @@ class Trellis2ImageTo3DPipelineMLX:
         mx.eval(slat_hr.feats)
         return slat_hr, hr_resolution
 
-    def _decode_shape(self, slat: SparseTensor, resolution: int) -> Tuple[np.ndarray, np.ndarray]:
-        """Shape VAE decode + dual-grid mesh extraction. Returns (V, F) numpy."""
+    def _sample_tex_slat(
+        self,
+        cond: mx.array,
+        neg: mx.array,
+        shape_slat: SparseTensor,
+        seed_offset: int,
+    ) -> SparseTensor:
+        """Sample texture SLat conditioned on shape latent. Mirrors upstream
+        sample_tex_slat: re-normalize shape, allocate (F, 32) noise (= in_channels=64
+        minus shape_feats=32), sample with concat_cond=shape_slat, denormalize."""
+        assert self.tex_flow is not None and self.tex_slat_mean is not None
+        params = self.pipeline_config["tex_slat_sampler"]["params"]
+        # Re-normalize shape SLat to its training distribution
+        shape_normed = shape_slat.replace((shape_slat.feats - self.shape_slat_mean) / self.shape_slat_std)
+        F = shape_slat.coords.shape[0]
+        noise_dim = self.tex_flow.in_channels - shape_slat.feats.shape[1]
+        assert noise_dim == 32, f"expected 32 noise channels for tex flow (in_channels=64, shape=32), got {noise_dim}"
+        mx.random.seed(seed_offset)
+        noise_feats = mx.random.normal((F, noise_dim))
+        spatial = (self.tex_flow.resolution,) * 3
+        noise = SparseTensor(feats=noise_feats, coords=shape_slat.coords, spatial_shape=spatial)
+        slat = self.sampler.sample(
+            self.tex_flow, noise,
+            cond=cond, neg_cond=neg,
+            steps=params["steps"],
+            guidance_strength=params["guidance_strength"],
+            guidance_interval=tuple(params["guidance_interval"]),
+            guidance_rescale=params["guidance_rescale"],
+            rescale_t=params["rescale_t"],
+            concat_cond=shape_normed,
+        )["samples"]
+        # Denormalize texture SLat
+        slat = slat.replace(slat.feats * self.tex_slat_std + self.tex_slat_mean)
+        return slat
+
+    def _decode_shape(self, slat: SparseTensor, resolution: int):
+        """Shape VAE decode + dual-grid mesh extraction.
+
+        Returns (V, F, subs, vertex_voxel_coords) — `subs` are the per-stage
+        subdivision masks needed to drive the texture VAE; `vertex_voxel_coords`
+        is the (F_vertices, 3) array of voxel coords-per-mesh-vertex used to
+        attribute per-voxel PBR back to the mesh.
+        """
         self.shape_vae.set_resolution(resolution)
         vertices, intersected, quad_lerp, subs = self.shape_vae.decode(slat, return_subs=True)
         mx.eval(vertices.feats, intersected.feats, quad_lerp.feats)
@@ -383,7 +468,19 @@ class Trellis2ImageTo3DPipelineMLX:
         quad_np = np.asarray(quad_lerp.feats)
         aabb = (np.array([-0.5, -0.5, -0.5]), np.array([0.5, 0.5, 0.5]))
         V, F = flexible_dual_grid_to_mesh(coords_np, dv_np, inter_np, quad_np, aabb, [resolution] * 3)
-        return V, F
+        return V, F, subs, coords_np
+
+    def _decode_texture(self, tex_slat: SparseTensor, subs) -> np.ndarray:
+        """Run the texture VAE with `subs` as guide_subs (from the shape decoder).
+        Returns per-voxel PBR (F_active, 6) numpy in [0, 1] range; channels are
+        [0:3]=base_color RGB, [3]=metallic, [4]=roughness, [5]=alpha.
+        """
+        assert self.tex_vae is not None
+        out = self.tex_vae(tex_slat, guide_subs=subs)
+        # Upstream rescales decoder output from [-1, 1] to [0, 1]
+        attrs = out.feats * 0.5 + 0.5
+        mx.eval(attrs)
+        return np.asarray(attrs)
 
     # --- public API --------------------------------------------------------
 
@@ -417,29 +514,37 @@ class Trellis2ImageTo3DPipelineMLX:
             out[size] = (cond, neg)
         return out
 
-    def run(self, image: Image.Image, seed: int = 42) -> Tuple[np.ndarray, np.ndarray]:
-        """image (RGBA or RGB) → (vertices (V, 3), faces (T, 3))."""
+    def run(self, image: Image.Image, seed: int = 42):
+        """image (RGBA or RGB) → mesh.
+
+        With `with_pbr=False` (default): returns `(V, F)` — vertices, faces.
+        With `with_pbr=True`: returns `(V, F, vertex_attrs)` where vertex_attrs
+        is `(N_v, 6)` per-vertex PBR in [0, 1]: [RGB, metallic, roughness, alpha].
+        """
         import time as _time
         weights = _STAGE_WEIGHTS.get(self.pipeline_type, _STAGE_WEIGHTS["512"])
+        if self.with_pbr:
+            weights = _stage_weights_pbr(weights)
         prog = _ProgressTracker(weights)
         prog.start()
 
+        n_stages = "7" if self.with_pbr else "5"
         t0 = _time.time()
-        print("[1/5] preprocess")
+        print(f"[1/{n_stages}] preprocess")
         pre = self._preprocess_with_rembg(image)
         t1 = _time.time(); print(f"      +{t1-t0:.1f}s   {prog.stage_done('preprocess')}")
 
-        print(f"[2/5] DINOv3 image conditioning @ {list(self.cond_sizes)}")
+        print(f"[2/{n_stages}] DINOv3 image conditioning @ {list(self.cond_sizes)}")
         conds = self._dino_conds(pre)
         cond_512, neg_512 = conds[self.cond_sizes[0]]
         t2 = _time.time(); print(f"      cond shapes: {[tuple(v[0].shape) for v in conds.values()]}   +{t2-t1:.1f}s   {prog.stage_done('dino')}")
 
-        print("[3/5] sparse structure flow + decode")
+        print(f"[3/{n_stages}] sparse structure flow + decode")
         occupancy = self._sample_ss(cond_512, neg_512, seed)
         coords = self._coords_from_occupancy(occupancy, self.ss_target_res)
         t3 = _time.time(); print(f"      active voxels at {self.ss_target_res}^3: {coords.shape[0]}   +{t3-t2:.1f}s   {prog.stage_done('ss')}")
 
-        print("[4/5] shape SLat flow" + (" (cascade)" if self.is_cascade else ""))
+        print(f"[4/{n_stages}] shape SLat flow" + (" (cascade)" if self.is_cascade else ""))
         if self.is_cascade:
             cond_lr, neg_lr = conds[512]
             cond_hr, neg_hr = conds[1024]
@@ -454,10 +559,29 @@ class Trellis2ImageTo3DPipelineMLX:
             vae_res = self.vae_res
         t4 = _time.time(); print(f"      slat feats: {tuple(slat.feats.shape)}   +{t4-t3:.1f}s   {prog.stage_done('shape')}")
 
-        print(f"[5/5] shape VAE decode + dual-grid mesh extract @ {vae_res}^3")
-        V, F = self._decode_shape(slat, vae_res)
+        print(f"[5/{n_stages}] shape VAE decode + dual-grid mesh extract @ {vae_res}^3")
+        V, F, subs, vertex_voxel_coords = self._decode_shape(slat, vae_res)
         t5 = _time.time(); print(f"      mesh: {V.shape[0]} verts, {F.shape[0]} faces   +{t5-t4:.1f}s   {prog.stage_done('vae')}")
-        return V, F
+        if not self.with_pbr:
+            return V, F
+
+        # Stage 6 — texture SLat flow (1.3B DiT, shape-conditioned)
+        print(f"[6/{n_stages}] texture SLat flow")
+        tex_cond, tex_neg = conds[self._tex_cond_size]
+        tex_slat = self._sample_tex_slat(tex_cond, tex_neg, slat, seed + 17)
+        mx.eval(tex_slat.feats)
+        t6 = _time.time(); print(f"      tex slat feats: {tuple(tex_slat.feats.shape)}   +{t6-t5:.1f}s   {prog.stage_done('tex_flow')}")
+
+        # Stage 7 — texture VAE decode → per-voxel PBR. Uses `subs` from shape decoder
+        # so the upsample structure matches the shape mesh's per-vertex voxel coords.
+        print(f"[7/{n_stages}] texture VAE decode → per-vertex PBR")
+        per_voxel_attrs = self._decode_texture(tex_slat, subs)  # (N, 6) in [0, 1]
+        # Vertex i ↔ voxel i (same row index in the dual-grid output), so this is a
+        # direct take. Trim/pad if shapes don't match (defensive — shouldn't happen).
+        n = min(per_voxel_attrs.shape[0], V.shape[0])
+        vertex_attrs = per_voxel_attrs[:n]
+        t7 = _time.time(); print(f"      vertex attrs: {vertex_attrs.shape}  rgb_mean={vertex_attrs[:, :3].mean():.3f}  alpha_mean={vertex_attrs[:, 5].mean():.3f}   +{t7-t6:.1f}s   {prog.stage_done('tex_vae')}")
+        return V, F, vertex_attrs
 
     @classmethod
     def from_pretrained(
@@ -468,6 +592,7 @@ class Trellis2ImageTo3DPipelineMLX:
         dino_device: str = "cpu",
         rembg_device: str = "auto",
         dit_compute_dtype: str = "bfloat16",
+        with_pbr: bool = False,
     ) -> "Trellis2ImageTo3DPipelineMLX":
         ckpt_dir = Path(ckpt_dir)
         if pipeline_json is None:
@@ -479,4 +604,5 @@ class Trellis2ImageTo3DPipelineMLX:
             ckpt_dir=ckpt_dir, pipeline_config=cfg["args"],
             pipeline_type=pipeline_type, dino_device=dino_device,
             rembg_device=rembg_device, dit_compute_dtype=dit_compute_dtype,
+            with_pbr=with_pbr,
         )
