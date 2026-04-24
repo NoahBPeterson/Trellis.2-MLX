@@ -97,12 +97,14 @@ This repo uses [`uv`](https://docs.astral.sh/uv/) for dependency management.
 ```bash
 git clone https://huggingface.co/<user>/trellis-mlx
 cd trellis-mlx
-uv sync --extra postprocess --extra image-cond
+uv sync --extra postprocess --extra image-cond --extra rembg
 ```
+
+The `rembg` extra installs `kornia`, `timm`, `torchvision` (BiRefNet's runtime deps) and is only needed for inputs that lack an alpha channel — if you always pass pre-composited RGBA images you can drop it.
 
 DINOv3 is an access-gated model; request access at
 [facebook/dinov3-vitl16-pretrain-lvd1689m](https://huggingface.co/facebook/dinov3-vitl16-pretrain-lvd1689m)
-and `huggingface-cli login` before first run.
+and `huggingface-cli login` before first run. BiRefNet (`briaai/RMBG-2.0`) is downloaded automatically on first non-RGBA input.
 
 ---
 
@@ -278,7 +280,7 @@ pipe = Trellis2ImageTo3DPipelineMLX.from_pretrained(
 | Tex SLat DiT (512/1024) | `SLatFlowModel` | bf16 | `ckpts/slat_flow_imgshape2tex_dit_1_3B_{512,1024}.safetensors` | ⏳ |
 | Tex VAE decoder/encoder | `SparseUnetVaeDecoder`/`Encoder` | fp16 | `ckpts/tex_{dec,enc}_next_dc_f16c32.safetensors` | ⏳ |
 | Image encoder | DINOv3 ViT-L/16 (torch) | — | external: `facebook/dinov3-vitl16-pretrain-lvd1689m` | ✅ |
-| Background removal | BiRefNet (torch) | — | external: `briaai/RMBG-2.0` | — *(bypassed for pre-composited RGBA)* |
+| Background removal | BiRefNet (torch) | — | external: `briaai/RMBG-2.0` | ✅ on-demand for non-RGBA inputs |
 
 Full per-component hyperparameters and torch ↔ MLX bijection map live in [`config.json`](./config.json) and each `ckpts/*.config.json`.
 

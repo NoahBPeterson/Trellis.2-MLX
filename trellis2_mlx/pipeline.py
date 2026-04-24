@@ -37,6 +37,7 @@ from .models.ss_decoder import SparseStructureDecoder
 from .modules.sparse_tensor import SparseTensor
 from .postprocess.dual_grid import flexible_dual_grid_to_mesh
 from .preprocess import preprocess_image
+from .rembg import BiRefNetRembg
 from .samplers import FlowEulerGuidanceIntervalSampler
 
 
@@ -138,6 +139,7 @@ class Trellis2ImageTo3DPipelineMLX:
         pipeline_config: dict,
         pipeline_type: str = "512",
         dino_device: str = "cpu",
+        rembg_device: str = "cpu",
         max_num_tokens: int = 49152,
         dit_compute_dtype: str = "bfloat16",
     ):
@@ -145,6 +147,8 @@ class Trellis2ImageTo3DPipelineMLX:
         self.pipeline_type = pipeline_type
         self.pipeline_config = pipeline_config
         self.max_num_tokens = max_num_tokens
+        self.rembg_device = rembg_device
+        self._rembg_model_name: str = pipeline_config.get("rembg_model", {}).get("args", {}).get("model_name", "briaai/RMBG-2.0")
         if dit_compute_dtype not in ("bfloat16", "float16"):
             raise ValueError(f"dit_compute_dtype must be 'bfloat16' or 'float16', got {dit_compute_dtype!r}")
         self.dit_compute_dtype = getattr(mx, dit_compute_dtype)
@@ -340,6 +344,26 @@ class Trellis2ImageTo3DPipelineMLX:
 
     # --- public API --------------------------------------------------------
 
+    def _preprocess_with_rembg(self, image: Image.Image) -> Image.Image:
+        """Run preprocess_image, lazily constructing a BiRefNet rembg only when the
+        input lacks an alpha channel. Aggressively disposes the rembg weights
+        immediately after to free ~1 GB before the DiT inference phase — without
+        this gc.collect, lingering torch tensors prevent Metal from satisfying
+        MLX allocations and the SS flow stage silently OOMs.
+        """
+        needs_rembg = image.mode != "RGBA" or (np.asarray(image.convert("RGBA"))[:, :, 3] == 255).all()
+        if not needs_rembg:
+            return preprocess_image(image, rembg_model=None)
+        rembg = BiRefNetRembg(self._rembg_model_name, device=self.rembg_device)
+        try:
+            out = preprocess_image(image, rembg_model=rembg)
+        finally:
+            rembg.unload()
+            del rembg
+            import gc
+            gc.collect()
+        return out
+
     def _dino_conds(self, image: Image.Image) -> dict[int, tuple[mx.array, mx.array]]:
         """Compute DINOv3 features at each size in self.cond_sizes. Cached by size."""
         out: dict[int, tuple[mx.array, mx.array]] = {}
@@ -355,7 +379,7 @@ class Trellis2ImageTo3DPipelineMLX:
         import time as _time
         t0 = _time.time()
         print("[1/5] preprocess")
-        pre = preprocess_image(image)
+        pre = self._preprocess_with_rembg(image)
         t1 = _time.time(); print(f"      +{t1-t0:.1f}s")
         print(f"[2/5] DINOv3 image conditioning @ {list(self.cond_sizes)}")
         conds = self._dino_conds(pre)
@@ -397,6 +421,7 @@ class Trellis2ImageTo3DPipelineMLX:
         pipeline_json: str | Path | None = None,
         pipeline_type: str = "512",
         dino_device: str = "cpu",
+        rembg_device: str = "cpu",
         dit_compute_dtype: str = "bfloat16",
     ) -> "Trellis2ImageTo3DPipelineMLX":
         ckpt_dir = Path(ckpt_dir)
@@ -408,5 +433,5 @@ class Trellis2ImageTo3DPipelineMLX:
         return cls(
             ckpt_dir=ckpt_dir, pipeline_config=cfg["args"],
             pipeline_type=pipeline_type, dino_device=dino_device,
-            dit_compute_dtype=dit_compute_dtype,
+            rembg_device=rembg_device, dit_compute_dtype=dit_compute_dtype,
         )

@@ -22,6 +22,14 @@ postprocess = [
 image-cond = [
     "transformers>=4.50",
 ]
+rembg = [
+    "transformers>=4.50",
+    # BiRefNet's remote modeling code imports these at load time; they have to be
+    # installed before `AutoModelForImageSegmentation.from_pretrained("briaai/RMBG-2.0")` works.
+    "kornia>=0.7",
+    "timm>=0.9",
+    "torchvision>=0.15",
+]
 dev = [
     "pytest>=8.0",
 ]

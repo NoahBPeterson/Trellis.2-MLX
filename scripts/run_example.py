@@ -26,6 +26,9 @@ def main() -> int:
     p.add_argument("--seed", type=int, default=42)
     p.add_argument("--pipeline-type", type=str, default="512")
     p.add_argument("--dino-device", type=str, default="cpu")
+    p.add_argument("--rembg-device", type=str, default="cpu",
+                   help="Device for BiRefNet background removal. Only runs when input image has no alpha channel; "
+                        "the model is freed immediately after to avoid holding ~1 GB through DiT inference.")
     p.add_argument("--dit-dtype", type=str, default="bfloat16", choices=["bfloat16", "float16"],
                    help="Compute dtype for the flow DiT weights. fp16 is ~25%% faster but introduces numerical drift; verify mesh quality before relying on it.")
     args = p.parse_args()
@@ -37,6 +40,7 @@ def main() -> int:
         pipeline_json=ROOT / "weights" / "pipeline.json",
         pipeline_type=args.pipeline_type,
         dino_device=args.dino_device,
+        rembg_device=args.rembg_device,
         dit_compute_dtype=args.dit_dtype,
     )
     print(f"loaded in {time.time() - t0:.1f}s")

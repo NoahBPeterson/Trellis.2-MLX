@@ -250,6 +250,38 @@ wheels = [
 ]
 
 [[package]]
+name = "kornia"
+version = "0.8.2"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "kornia-rs" },
+    { name = "packaging" },
+    { name = "torch" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/c6/e6/45e757d4924176e4d4e111e10effaab7db382313243e0188a06805010073/kornia-0.8.2.tar.gz", hash = "sha256:5411b2ce0dd909d1608016308cd68faeef90f88c47f47e8ecd40553fd4d8b937", size = 667151, upload-time = "2025-11-08T12:10:03.042Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/79/d4/e9bd12b7b4cbd23b4dfb47e744ee1fa54d6d9c3c9bc406ec86c1be8c8307/kornia-0.8.2-py2.py3-none-any.whl", hash = "sha256:32dfe77c9c74a87a2de49395aa3c2c376a1b63c27611a298b394d02d13905819", size = 1095012, upload-time = "2025-11-08T12:10:01.226Z" },
+]
+
+[[package]]
+name = "kornia-rs"
+version = "0.1.10"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/ab/17/8b3518ece01512a575b18f86b346879793d3dea264b314796bbd44d42e11/kornia_rs-0.1.10.tar.gz", hash = "sha256:5fd3fbc65240fa751975f5870b079f98e7fdcaa2885ea577b3da324d8bf01d81", size = 145610, upload-time = "2025-11-08T11:29:32.399Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/20/25/ab91a87cefd8d92a10749fa5d923366dfd2a2d240d9e57260e4218e9a5af/kornia_rs-0.1.10-cp311-cp311-macosx_10_12_x86_64.whl", hash = "sha256:6757940733f13c52c4f142b9b11e3e9bd12ef9d209e333300602e86e21f5ae2f", size = 2811949, upload-time = "2025-11-08T11:30:19.768Z" },
+    { url = "https://files.pythonhosted.org/packages/ae/61/6125a970249e04dd31cf3edf3fb0ceb98ea65269bc416ba48fd70f9a8f5e/kornia_rs-0.1.10-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:68e90101a34ba2bbce920332b25fd4d25c8c546d9a241b2606a6d886df2dd1ed", size = 2078639, upload-time = "2025-11-08T11:30:06.363Z" },
+    { url = "https://files.pythonhosted.org/packages/0a/e4/c3484e5921a08e6368f0565c30646741fd12b46cb45c962d519cac3d12ad/kornia_rs-0.1.10-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:6b0adb81858a8963455f2f0da01fcd6ea3296147b918306488edeeaf6bc2a979", size = 2204722, upload-time = "2025-11-08T11:29:33.566Z" },
+    { url = "https://files.pythonhosted.org/packages/93/a4/2e6e33da900f19ae6411bfad41d317e56f1ae4f204bd73e61f0881bd5418/kornia_rs-0.1.10-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:0c3e237a8428524ad9f86599c0c47b355bc3007669fe297ea3fbd59cd64bc2f7", size = 3042890, upload-time = "2025-11-08T11:29:50.15Z" },
+    { url = "https://files.pythonhosted.org/packages/40/48/5e171c98b742139bebd1bd593d768e3c045f824bf0ae14190b63f0ac0acc/kornia_rs-0.1.10-cp311-cp311-win_amd64.whl", hash = "sha256:1d300ea6d4666e47302fba6cc438556d91e37ce41caf291a9a04a8f74c231d0b", size = 2544572, upload-time = "2025-11-08T11:30:32.32Z" },
+    { url = "https://files.pythonhosted.org/packages/d8/6c/8248f08c90a10d6b8ca2e74783da8df7fa509f46b64a3b4fbb7dd0ac4e9c/kornia_rs-0.1.10-cp312-cp312-macosx_10_12_x86_64.whl", hash = "sha256:f0809277e51156d59be3c39605ba9659e94f7a4cf3b0b6c035ec2f06f6067881", size = 2811606, upload-time = "2025-11-08T11:30:21.346Z" },
+    { url = "https://files.pythonhosted.org/packages/83/dc/29e5710cbc5d01c155ee1fd7621db48b94378a7ae394741bb34a6bfb36d9/kornia_rs-0.1.10-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:8ecf2ba0291cc1bb178073d56e46b16296a8864a20272b63af02ee88771cb574", size = 2076141, upload-time = "2025-11-08T11:30:07.527Z" },
+    { url = "https://files.pythonhosted.org/packages/68/f7/0b3e90b9d0a25e6211c7ac9fa1dfed4db1306a812c359ee49678390a1bdc/kornia_rs-0.1.10-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:d874ca12dd58871f9849672d9bf9fa998398470a88b52d61223ce2133b196662", size = 2205562, upload-time = "2025-11-08T11:29:35.353Z" },
+    { url = "https://files.pythonhosted.org/packages/63/d4/315f358b2a2c29d9af3a73f3d1973c2fd8e0cdeb65a57af98643e66fa7c8/kornia_rs-0.1.10-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:f332a2a034cc791006f25c2d85e342a060887145e9236e8e43562badcadededf", size = 3042197, upload-time = "2025-11-08T11:29:51.614Z" },
+    { url = "https://files.pythonhosted.org/packages/d3/b8/0ddbdf1d35fec3ef24f5b8cc29eb633ce5ce16c94c9fb090408c1280abe9/kornia_rs-0.1.10-cp312-cp312-win_amd64.whl", hash = "sha256:34111ce1c8abe930079b4b0aeb8d372f876c621a867ed03f77181de685e71a8f", size = 2539656, upload-time = "2025-11-08T11:30:33.908Z" },
+]
+
+[[package]]
 name = "markdown-it-py"
 version = "4.0.0"
 source = { registry = "https://pypi.org/simple" }
@@ -747,6 +779,22 @@ wheels = [
 ]
 
 [[package]]
+name = "timm"
+version = "1.0.26"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "huggingface-hub" },
+    { name = "pyyaml" },
+    { name = "safetensors" },
+    { name = "torch" },
+    { name = "torchvision" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/7b/1e/e924b3b2326a856aaf68586f9c52a5fc81ef45715eca408393b68c597e0e/timm-1.0.26.tar.gz", hash = "sha256:f66f082f2f381cf68431c22714c8b70f723837fa2a185b155961eab90f2d5b10", size = 2419859, upload-time = "2026-03-23T18:12:10.272Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/6f/e9/bebf3d50e3fc847378988235f87c37ad3ac26d386041ab915d15e92025cd/timm-1.0.26-py3-none-any.whl", hash = "sha256:985c330de5ccc3a2aa0224eb7272e6a336084702390bb7e3801f3c91603d3683", size = 2568766, upload-time = "2026-03-23T18:12:08.062Z" },
+]
+
+[[package]]
 name = "tokenizers"
 version = "0.22.2"
 source = { registry = "https://pypi.org/simple" }
@@ -801,6 +849,26 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/13/16/42e5915ebe4868caa6bac83a8ed59db57f12e9a61b7d749d584776ed53d5/torch-2.11.0-cp312-cp312-manylinux_2_28_aarch64.whl", hash = "sha256:f99924682ef0aa6a4ab3b1b76f40dc6e273fca09f367d15a524266db100a723f", size = 419731115, upload-time = "2026-03-23T18:11:06.944Z" },
     { url = "https://files.pythonhosted.org/packages/1a/c9/82638ef24d7877510f83baf821f5619a61b45568ce21c0a87a91576510aa/torch-2.11.0-cp312-cp312-manylinux_2_28_x86_64.whl", hash = "sha256:0f68f4ac6d95d12e896c3b7a912b5871619542ec54d3649cf48cc1edd4dd2756", size = 530712279, upload-time = "2026-03-23T18:10:31.481Z" },
     { url = "https://files.pythonhosted.org/packages/1c/ff/6756f1c7ee302f6d202120e0f4f05b432b839908f9071157302cedfc5232/torch-2.11.0-cp312-cp312-win_amd64.whl", hash = "sha256:fbf39280699d1b869f55eac536deceaa1b60bd6788ba74f399cc67e60a5fab10", size = 114556047, upload-time = "2026-03-23T18:10:55.931Z" },
+]
+
+[[package]]
+name = "torchvision"
+version = "0.26.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "numpy" },
+    { name = "pillow" },
+    { name = "torch" },
+]
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/b4/bd/d552a2521bade3295b2c6e7a4a0d1022261cab7ca7011f4e2a330dbb3caa/torchvision-0.26.0-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:55bd6ad4ae77be01ba67a410b05b51f53b0d0ee45f146eb6a0dfb9007e70ab3c", size = 1863499, upload-time = "2026-03-23T18:12:58.696Z" },
+    { url = "https://files.pythonhosted.org/packages/33/bf/21b899792b08cae7a298551c68398a79e333697479ed311b3b067aab4bdc/torchvision-0.26.0-cp311-cp311-manylinux_2_28_aarch64.whl", hash = "sha256:1c55dc8affbcc0eb2060fbabbe996ae9e5839b24bb6419777f17848945a411b1", size = 7767527, upload-time = "2026-03-23T18:12:44.348Z" },
+    { url = "https://files.pythonhosted.org/packages/9a/45/57bbf9e216850d065e66dd31a50f57424b607f1d878ab8956e56a1f4e36b/torchvision-0.26.0-cp311-cp311-manylinux_2_28_x86_64.whl", hash = "sha256:fd10b5f994c210f4f6d6761cf686f82d748554adf486cb0979770c3252868c8f", size = 7519925, upload-time = "2026-03-23T18:12:53.283Z" },
+    { url = "https://files.pythonhosted.org/packages/10/58/ed8f7754299f3e91d6414b6dc09f62b3fa7c6e5d63dfe48d69ab81498a37/torchvision-0.26.0-cp311-cp311-win_amd64.whl", hash = "sha256:de6424b12887ad884f39a0ee446994ae3cd3b6a00a9cafe1bead85a031132af0", size = 3983834, upload-time = "2026-03-23T18:13:00.224Z" },
+    { url = "https://files.pythonhosted.org/packages/ae/e7/56b47cc3b132aea90ccce22bcb8975dec688b002150012acc842846039d0/torchvision-0.26.0-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:c409e1c3fdebec7a3834465086dbda8bf7680eff79abf7fd2f10c6b59520a7a4", size = 1863502, upload-time = "2026-03-23T18:12:57.326Z" },
+    { url = "https://files.pythonhosted.org/packages/f4/ec/5c31c92c08b65662fe9604a4067ae8232582805949f11ddc042cebe818ed/torchvision-0.26.0-cp312-cp312-manylinux_2_28_aarch64.whl", hash = "sha256:406557718e62fdf10f5706e88d8a5ec000f872da913bf629aab9297622585547", size = 7767944, upload-time = "2026-03-23T18:12:42.805Z" },
+    { url = "https://files.pythonhosted.org/packages/f5/d8/cb6ccda1a1f35a6597645818641701207b3e8e13553e75fce5d86bac74b2/torchvision-0.26.0-cp312-cp312-manylinux_2_28_x86_64.whl", hash = "sha256:d61a5abb6b42a0c0c311996c2ac4b83a94418a97182c83b055a2a4ae985e05aa", size = 7522205, upload-time = "2026-03-23T18:12:54.654Z" },
+    { url = "https://files.pythonhosted.org/packages/1c/a9/c272623a0f735c35f0f6cd6dc74784d4f970e800cf063bb76687895a2ab9/torchvision-0.26.0-cp312-cp312-win_amd64.whl", hash = "sha256:7993c01648e7c61d191b018e84d38fe0825c8fcb2720cd0f37caf7ba14404aa1", size = 4255155, upload-time = "2026-03-23T18:12:32.652Z" },
 ]
 
 [[package]]
@@ -861,23 +929,33 @@ postprocess = [
     { name = "trimesh" },
     { name = "xatlas" },
 ]
+rembg = [
+    { name = "kornia" },
+    { name = "timm" },
+    { name = "torchvision" },
+    { name = "transformers" },
+]
 
 [package.metadata]
 requires-dist = [
     { name = "easydict", specifier = ">=1.13" },
     { name = "huggingface-hub", specifier = ">=0.35" },
+    { name = "kornia", marker = "extra == 'rembg'", specifier = ">=0.7" },
     { name = "mlx", specifier = ">=0.18.0" },
     { name = "numpy", specifier = ">=1.26" },
     { name = "pillow", specifier = ">=10.0" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.0" },
     { name = "safetensors", specifier = ">=0.4" },
+    { name = "timm", marker = "extra == 'rembg'", specifier = ">=0.9" },
     { name = "torch", specifier = ">=2.8" },
+    { name = "torchvision", marker = "extra == 'rembg'", specifier = ">=0.15" },
     { name = "tqdm", specifier = ">=4.66" },
     { name = "transformers", marker = "extra == 'image-cond'", specifier = ">=4.50" },
+    { name = "transformers", marker = "extra == 'rembg'", specifier = ">=4.50" },
     { name = "trimesh", marker = "extra == 'postprocess'", specifier = ">=4.0" },
     { name = "xatlas", marker = "extra == 'postprocess'", specifier = ">=0.0.9" },
 ]
-provides-extras = ["postprocess", "image-cond", "dev"]
+provides-extras = ["postprocess", "image-cond", "rembg", "dev"]
 
 [[package]]
 name = "trimesh"
