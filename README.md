@@ -21,7 +21,7 @@ An MLX-native re-implementation of Microsoft's [TRELLIS.2-4B](https://huggingfac
 
 Weights were converted from the upstream `microsoft/TRELLIS.2-4B` safetensors shards — no re-training, same numerics intent, per-tensor bijection recorded alongside each checkpoint.
 
-**Status:** single-image → triangle-mesh GLB at `pipeline_type="512"` is working end-to-end. Texture pipeline and higher-resolution cascades are scoped but deferred (see [Roadmap](#roadmap)).
+**Status:** single-image → triangle-mesh GLB at `pipeline_type="512"` and `"1024"` working end-to-end. Cascade variants (`1024_cascade`, `1536_cascade`) and the PBR texture pipeline are scoped but deferred (see [Roadmap](#roadmap)).
 
 ---
 
@@ -136,20 +136,37 @@ export_mesh_glb(V, F, "out.mesh.glb")
 
 ## Performance (M-series MacBook, reference run)
 
-Measured on a reference Apple Silicon MacBook running `pipeline_type="512"` on `upstream/assets/example_image/T.png`. Your mileage will vary by chip tier and unified-memory size.
+Measured on a reference Apple Silicon MacBook running `scripts/run_example.py` on `upstream/assets/example_image/T.png`. Your mileage will vary by chip tier and unified-memory size.
+
+### `pipeline_type="512"`
 
 | Stage                               | Time   |
 | ----------------------------------- | -----: |
 | Preprocess (alpha-crop, premul)     |   0.1s |
-| DINOv3 image conditioning (torch)   |   3.4s |
-| SS flow (dense DiT) + decoder       | 136.6s |
-| Shape SLat flow (sparse DiT)        | 139.4s |
-| Shape VAE decode + dual-grid mesh   |  25.6s |
-| **Total**                           | **~305s** |
+| DINOv3 image conditioning (torch)   |   4.4s |
+| SS flow (dense DiT) + decoder       | 263.3s |
+| Shape SLat flow (sparse DiT)        | 120.5s |
+| Shape VAE decode + dual-grid mesh   |  21.7s |
+| **Total**                           | **~410s** |
 
-The flow DiTs currently dominate wall-clock; the sparse VAE has been tuned (batched `np.searchsorted` neighbor maps, per-kernel conv fused via gather, vectorized C2S subdivision) and micro-benchmarks in the 900–3000 GFLOPS range per submanifold conv. Further DiT-side optimization is planned — see [Roadmap](#roadmap).
+Mesh output: 1,651,404 verts / 3,501,928 faces.
 
-For comparison, upstream on an NVIDIA H100 reports ~3s at 512³. We are not trying to match that; the objective is "works on a MacBook."
+### `pipeline_type="1024"`
+
+| Stage                               | Time    |
+| ----------------------------------- | ------: |
+| Preprocess                          |    0.0s |
+| DINOv3 @ 1024px (4101 patch tokens) |    6.4s |
+| SS flow (dense DiT) + decoder       |  158.2s |
+| Shape SLat flow (sparse DiT, ~19k tokens) | 1680.0s |
+| Shape VAE decode + dual-grid mesh   |  100.6s |
+| **Total**                           | **~32 min** |
+
+Mesh output: 6,772,966 verts / 13,554,918 faces (4.1× the 512 mesh, same bbox, higher fidelity).
+
+The flow DiTs currently dominate wall-clock; the sparse VAE has been tuned (batched `np.searchsorted` neighbor maps, per-kernel conv fused via gather, vectorized C2S subdivision) and micro-benchmarks in the 900–3000 GFLOPS range per submanifold conv. The 1024 shape-flow cost grows roughly with the square of the token count (self-attention), so the difference between 512 and 1024 is mostly attention compute. Further DiT-side optimization is planned — see [Roadmap](#roadmap).
+
+For comparison, upstream on an NVIDIA H100 reports ~3s at 512³ and ~17s at 1024³. We are not trying to match that; the objective is "works on a MacBook."
 
 ---
 

@@ -1,16 +1,21 @@
 """Trellis2ImageTo3DPipelineMLX — end-to-end image → 3D mesh.
 
-v1 supports `pipeline_type="512"` only (simplest path, no cascade). Mirrors
-upstream/trellis2/pipelines/trellis2_image_to_3d.py semantics with MLX tensors:
+Supports `pipeline_type` ∈ {"512", "1024"} today. Cascades (`1024_cascade`,
+`1536_cascade`) raise NotImplementedError until the VAE upsample primitive lands.
+
+Mirrors upstream/trellis2/pipelines/trellis2_image_to_3d.py with MLX tensors:
 
   image (PIL)
     → preprocess_image (alpha-crop, premultiply)
     → DinoV3FeatureExtractor (torch-CPU) → cond (1, N, 1024) + zeros neg_cond
     → SS flow DiT @ 16^3 (1.3B, 12 Euler steps, CFG interval)
     → SparseStructureDecoder → 64^3 occupancy → threshold → coords at target res
-    → Shape SLat flow DiT @ 512 (1.3B, 12 Euler steps, CFG interval)
+        * target_res = 32 for pipeline_type="512", 64 for "1024"
+    → Shape SLat flow DiT (1.3B, 12 Euler steps, CFG interval)
+        * 512-variant @ res=32 for "512", 1024-variant @ res=64 for "1024"
     → de-normalize via shape_slat_normalization (mean/std from pipeline.json)
     → FlexiDualGridVaeDecoder (474M) → dual-grid (vertices, intersected, quad_lerp)
+        * VAE resolution = 512 or 1024 to match
     → flexible_dual_grid_to_mesh (CPU) → (V, F)
 
 Texture pipeline (tex flow + tex VAE + UV atlas bake) is deferred.
@@ -79,8 +84,15 @@ def _load_weights_prefixed(module, path: Path) -> None:
         module.load_weights(str(path))
 
 
+# pipeline_type → (shape flow ckpt stem, DINOv3 image size, SS target_res, VAE res)
+_PIPELINE_PARAMS: dict[str, tuple[str, int, int, int]] = {
+    "512":  ("slat_flow_img2shape_dit_1_3B_512",  512,  32,  512),
+    "1024": ("slat_flow_img2shape_dit_1_3B_1024", 1024, 64, 1024),
+}
+
+
 class Trellis2ImageTo3DPipelineMLX:
-    """All-in-memory v1 pipeline. ~10 GB of MLX weights + ~1 GB torch DINOv3."""
+    """All-in-memory pipeline. ~10 GB of MLX weights + ~1 GB torch DINOv3."""
 
     def __init__(
         self,
@@ -92,16 +104,22 @@ class Trellis2ImageTo3DPipelineMLX:
         self.ckpt_dir = Path(ckpt_dir)
         self.pipeline_type = pipeline_type
         self.pipeline_config = pipeline_config
-        assert pipeline_type == "512", f"v1 supports only pipeline_type='512' for now, got {pipeline_type}"
+        if pipeline_type in ("1024_cascade", "1536_cascade"):
+            raise NotImplementedError(
+                f"pipeline_type={pipeline_type!r} needs the VAE upsample() primitive; not yet wired (Phase 5B)"
+            )
+        if pipeline_type not in _PIPELINE_PARAMS:
+            raise ValueError(f"unknown pipeline_type {pipeline_type!r}; expected one of {list(_PIPELINE_PARAMS)}")
+        shape_stem, self.dino_image_size, self.ss_target_res, self.vae_res = _PIPELINE_PARAMS[pipeline_type]
 
         # Models
         self.ss_flow = self._load_ss_flow()
         self.ss_dec = self._load_ss_dec()
-        self.shape_flow = self._load_shape_flow()
+        self.shape_flow = self._load_shape_flow(shape_stem)
         self.shape_vae = self._load_shape_vae()
         self.dino = DinoV3FeatureExtractor(
             pipeline_config["image_cond_model"]["args"]["model_name"],
-            image_size=512,
+            image_size=self.dino_image_size,
             device=dino_device,
         )
 
@@ -126,10 +144,10 @@ class Trellis2ImageTo3DPipelineMLX:
         _load_weights_prefixed(m, self.ckpt_dir / "ss_dec_conv3d_16l8.safetensors")
         return m
 
-    def _load_shape_flow(self) -> SLatFlowModel:
-        cfg = _load_config(self.ckpt_dir / "slat_flow_img2shape_dit_1_3B_512.config.json")
+    def _load_shape_flow(self, stem: str) -> SLatFlowModel:
+        cfg = _load_config(self.ckpt_dir / f"{stem}.config.json")
         m = SLatFlowModel(**_strip_unused(cfg["args"]))
-        _load_weights_prefixed(m, self.ckpt_dir / "slat_flow_img2shape_dit_1_3B_512.safetensors")
+        _load_weights_prefixed(m, self.ckpt_dir / f"{stem}.safetensors")
         return m
 
     def _load_shape_vae(self) -> FlexiDualGridVaeDecoder:
@@ -229,16 +247,14 @@ class Trellis2ImageTo3DPipelineMLX:
         t2 = _time.time(); print(f"      cond shape: {tuple(cond.shape)}   +{t2-t1:.1f}s")
         print("[3/5] sparse structure flow + decode")
         occupancy = self._sample_ss(cond, neg, seed)
-        target_res = {"512": 32, "1024_cascade": 32}[self.pipeline_type]
-        coords = self._coords_from_occupancy(occupancy, target_res)
-        t3 = _time.time(); print(f"      active voxels at {target_res}^3: {coords.shape[0]}   +{t3-t2:.1f}s")
+        coords = self._coords_from_occupancy(occupancy, self.ss_target_res)
+        t3 = _time.time(); print(f"      active voxels at {self.ss_target_res}^3: {coords.shape[0]}   +{t3-t2:.1f}s")
         print("[4/5] shape SLat flow")
         slat = self._sample_shape_slat(cond, neg, coords, seed)
         mx.eval(slat.feats)
         t4 = _time.time(); print(f"      slat feats: {tuple(slat.feats.shape)}   +{t4-t3:.1f}s")
         print("[5/5] shape VAE decode + dual-grid mesh extract")
-        resolution = {"512": 512, "1024": 1024}.get(self.pipeline_type, 512)
-        V, F = self._decode_shape(slat, resolution)
+        V, F = self._decode_shape(slat, self.vae_res)
         t5 = _time.time(); print(f"      mesh: {V.shape[0]} verts, {F.shape[0]} faces   +{t5-t4:.1f}s")
         return V, F
 

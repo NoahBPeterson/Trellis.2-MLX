@@ -40,6 +40,11 @@ class DinoV3FeatureExtractor:
         self.model.to(device)
         return self
 
+    def set_image_size(self, size: int) -> None:
+        """Reconfigure input resolution per-call. Upstream flips between 512 and 1024
+        depending on pipeline_type (`cond_512` vs `cond_1024`)."""
+        self.image_size = size
+
     def _extract_features(self, image: torch.Tensor) -> torch.Tensor:
         """Manual layer stack (matches upstream extract_features) for the last
         pre-norm hidden states, then an affine-less final LayerNorm.
