@@ -21,7 +21,7 @@ An MLX-native re-implementation of Microsoft's [TRELLIS.2-4B](https://huggingfac
 
 Weights were converted from the upstream `microsoft/TRELLIS.2-4B` safetensors shards — no re-training, same numerics intent, per-tensor bijection recorded alongside each checkpoint.
 
-**Status:** single-image → triangle-mesh GLB working end-to-end at `pipeline_type` ∈ {`512`, `1024`, `1024_cascade`}. `1536_cascade` is wired but needs more RAM than most Macs have. The PBR texture pipeline is scoped but deferred (see [Roadmap](#roadmap)).
+**Status:** single-image → textured GLB working end-to-end at `pipeline_type` ∈ {`512`, `1024`, `1024_cascade`}. `1536_cascade` is wired but needs more RAM than most Macs have. PBR texture pipeline ships as vertex-color GLBs by default (works in every glTF viewer); UV-atlas-textured GLBs are scaffolded but currently unstable on TRELLIS dual-grid topology — see [Roadmap](#roadmap).
 
 ---
 
@@ -110,12 +110,26 @@ and `huggingface-cli login` before first run. BiRefNet (`briaai/RMBG-2.0`) is do
 
 ## Quickstart
 
+**Geometry only (no PBR, ~5 stages, fastest):**
+
 ```bash
 uv run python scripts/run_example.py \
     --image upstream/assets/example_image/T.png \
     --out  artifacts/sample.glb \
     --pipeline-type 512
 ```
+
+**Geometry + PBR (7 stages — adds ~90s of texture flow + VAE):**
+
+```bash
+uv run python scripts/run_example_pbr.py \
+    --image upstream/assets/example_image/T.png \
+    --out  artifacts/sample_pbr.glb \
+    --pipeline-type 512 \
+    --dit-dtype float16
+```
+
+The PBR runner ships a vertex-colored GLB by default (renders in Quick Look, Blender, three.js, etc.). Pass `--atlas` to opt into the experimental UV-atlas baker; it currently segfaults inside `xatlas` on TRELLIS dual-grid topology and is left in tree for future work — see Roadmap.
 
 Or from Python:
 
@@ -319,9 +333,12 @@ Checks:
 ## Roadmap
 
 **Immediate:**
-- Int8/Int4 weight quantization via `mx.quantize` — expected 1.5–2× further speedup on the flow stages by cutting weight memory bandwidth.
+- **Stable UV-atlas baker.** The current `--atlas` path segfaults inside `xatlas.parametrize` on TRELLIS dual-grid meshes (non-manifold topology, T-junctions, zero-area triangles from dual-grid extraction). Either (a) a manifold-ize / weld-degenerate-edges preprocess before xatlas, or (b) swap to a topology-tolerant unwrapper. The decimate + bake + glTF-PBR-write code is in tree (`trellis2_mlx/postprocess/atlas.py` + `glb_export.py:export_pbr_glb`); only the unwrap step is broken.
 - `pipeline_type="1536_cascade"` smoke — the code path is wired (same as `1024_cascade` with `hr_resolution=1536`), but the token count is expected to blow past the 49k cap on most inputs. Upstream's cap-downgrade fallback is implemented; needs a machine with 64+ GB to verify.
 - Native-MLX port of DINOv3 to remove the torch dependency at inference time (saves the ~3–4s torch-CPU cost).
+
+**v2:**
+- Int8/Int4 weight quantization (deferred after numerical investigation — int4 errors compound to 268% p99 across 30 blocks; int8 is borderline at 12% drift; neither offers speed gains on M1 Pro for our matmul shapes; see `scripts/verify_quant_numerics.py`).
 
 **v2:**
 - Texture pipeline (`Trellis2ImageToTexturedGLBPipelineMLX`). Backbone + VAE arch is identical to shape; concat-condition on shape latent; weights are already converted in `ckpts/*tex*.safetensors`.

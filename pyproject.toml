@@ -18,6 +18,8 @@ dependencies = [
 postprocess = [
     "trimesh>=4.0",
     "xatlas>=0.0.9",
+    "scipy>=1.11",
+    "fast-simplification>=0.1",   # backend for trimesh.simplify_quadric_decimation
 ]
 image-cond = [
     "transformers>=4.50",
