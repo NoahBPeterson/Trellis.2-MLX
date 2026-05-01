@@ -1,5 +1,7 @@
 # Upstream sources (cloned, not our code)
 upstream/
+upstream-trellis1/
+ext/
 
 # Downloaded torch weights (reproducible via hf download)
 weights/
@@ -8,6 +10,16 @@ weights-trellis1/
 # Large converted weights — managed by HF Hub + git-lfs separately
 ckpts/*.safetensors
 ckpts/*.bijection.json
+
+# Generated GLBs, npz dumps, debug images — re-derivable from source
+artifacts/
+
+# One-off logs
+terminal_log_4090.txt
+*.log
+
+# Claude Code local state (per-project, not portable)
+.claude/
 
 # Python
 __pycache__/
