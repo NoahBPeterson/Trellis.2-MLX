@@ -170,16 +170,16 @@ Mesh output: 1,651,404 verts / 3,501,928 faces.
 
 ### `pipeline_type="1024"`
 
-| Stage                               | Time    |
-| ----------------------------------- | ------: |
-| Preprocess                          |    0.0s |
-| DINOv3 @ 1024px (4101 patch tokens) |    6.4s |
-| SS flow (dense DiT) + decoder       |  158.2s |
-| Shape SLat flow (sparse DiT, ~19k tokens) | 1680.0s |
-| Shape VAE decode + dual-grid mesh   |  100.6s |
-| **Total**                           | **~32 min** |
+| Stage                                     | Time    |
+| ----------------------------------------- | ------: |
+| Preprocess                                |    0.1s |
+| DINOv3 @ 1024px (4101 patch tokens)       |    6.7s |
+| SS flow (dense DiT) + decoder             |  129.2s |
+| Shape SLat flow (sparse DiT, ~19k tokens) | 1204.2s |
+| Shape VAE decode + dual-grid mesh         |   97.6s |
+| **Total**                                 | **~24 min** |
 
-Mesh output: 6,772,966 verts / 13,554,918 faces (4.1× the 512 mesh, same bbox, higher fidelity).
+Mesh output: 6,080,680 verts / 12,001,866 faces (3.8× the 512 mesh, same bbox, higher fidelity).
 
 ### `pipeline_type="1024_cascade"`
 
@@ -216,6 +216,29 @@ Mesh output: 6,946,823 verts / 14,091,496 faces. ~7% faster than direct `1024` b
 Output: 1.7M-vert dual-grid mesh decimated to 500k faces; 2048×2048 atlas with base-color RGBA + metallic-roughness; ~32 MB GLB.
 
 UV unwrap is the largest single line item — most of it is the per-chart xatlas calls inside cone-cluster (~150k charts on the steampunk T-shape). For applications that don't need texture atlases, `--vertex-colors` skips post-processing entirely (write 1.3s) and shipping the per-vertex PBR directly.
+
+### `pipeline_type="1024"` + full PBR + UV atlas
+
+| Stage                                       | Time     |
+| ------------------------------------------- | -------: |
+| Preprocess                                  |    0.1s  |
+| DINOv3 image conditioning @ 1024            |    6.7s  |
+| SS flow (dense DiT) + decoder               |  129.2s  |
+| Shape SLat flow (sparse DiT, ~19k tokens)   | 1204.2s  |
+| Shape VAE decode + dual-grid mesh @ 1024³   |   97.6s  |
+| Tex SLat flow (sparse DiT, ~19k tokens)     |  548.7s  |
+| Tex VAE decode → per-vertex PBR             |   72.3s  |
+| **Sampling + decode subtotal**              | **~34m18s** |
+| Decimate (12M → 545k faces)                 |   29.2s  |
+| UV unwrap (cone-cluster + per-chart xatlas) |  212.9s  |
+| Atlas bake (BVH per-texel, 2k atlas)        |   61.4s  |
+| GLB write                                   |    1.0s  |
+| **Post-processing subtotal**                | **~5m05s** |
+| **Total**                                   | **~39m20s** |
+
+Output: 6.08M-vert dual-grid mesh decimated to 545k faces; 2048×2048 atlas (downsampled from xatlas's chosen 4813²); ~38 MB GLB.
+
+Material distribution at 1024 is closer to upstream than at 512 — metallic-mean drops from ~0.98 (512) to ~0.81 (1024), tracking upstream CUDA's 0.71 more closely. The higher-resolution shape feature space yields a more diverse PBR distribution.
 
 The flow DiTs currently dominate wall-clock; the sparse VAE has been tuned (batched `np.searchsorted` neighbor maps, per-kernel conv fused via gather, vectorized C2S subdivision) and micro-benchmarks in the 900–3000 GFLOPS range per submanifold conv. The 1024 shape-flow cost grows roughly with the square of the token count (self-attention), so the difference between 512 and 1024 is mostly attention compute. Further DiT-side optimization is planned — see [Roadmap](#roadmap).
 
@@ -359,7 +382,7 @@ Checks:
 ## Roadmap
 
 **Immediate:**
-- **DiT performance.** Sampling dominates wall-clock (~5 min of the ~10-min PBR run). Likely wins: graph-level fusion, attention kernel tuning for our specific (1, F, C) sparse shapes, KV-cache for fixed-cond CFG passes.
+- **DiT performance.** Sampling dominates wall-clock (~6 min of the ~10-min 512 PBR run; ~34 min of the ~39-min 1024 PBR run). Likely wins: graph-level fusion, attention kernel tuning for our specific (1, F, C) sparse shapes, KV-cache for fixed-cond CFG passes.
 - **Mesh quality.** Polygon faceting visible on small features (gears, rivets) compared to upstream — likely from `fast-simplification`'s topology-agnostic decimation vs CuMesh's curvature-aware decimator. Worth investigating a port of CuMesh's decimator.
 - **Native-MLX DINOv3 port.** Removes the last torch dependency at inference time (saves the ~3–4s torch-CPU cost and the gated-model headache for new contributors).
 - **`pipeline_type="1536_cascade"`** — code path is wired (same as `1024_cascade` with `hr_resolution=1536`), but token count blows past the 49k cap on most inputs. Cap-downgrade fallback is implemented; needs a machine with 64+ GB to verify.
