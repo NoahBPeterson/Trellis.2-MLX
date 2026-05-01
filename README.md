@@ -21,7 +21,7 @@ An MLX-native re-implementation of Microsoft's [TRELLIS.2-4B](https://huggingfac
 
 Weights were converted from the upstream `microsoft/TRELLIS.2-4B` safetensors shards — no re-training, same numerics intent, per-tensor bijection recorded alongside each checkpoint.
 
-**Status:** single-image → textured GLB working end-to-end at `pipeline_type` ∈ {`512`, `1024`, `1024_cascade`}. `1536_cascade` is wired but needs more RAM than most Macs have. PBR texture pipeline ships as vertex-color GLBs by default (works in every glTF viewer); UV-atlas-textured GLBs are scaffolded but currently unstable on TRELLIS dual-grid topology — see [Roadmap](#roadmap).
+**Status:** single-image → fully textured PBR GLB working end-to-end at `pipeline_type` ∈ {`512`, `1024`, `1024_cascade`}. `1536_cascade` is wired but needs more RAM than most Macs have. The PBR pipeline (cone-cluster UV unwrap + per-texel BVH bake) produces output visually equivalent to upstream CUDA on the reference T.png — see [`artifacts/upstream_ref.glb`](#) vs [`artifacts/sample_pbr.glb`](#) for a side-by-side. Single-seed bit-exact parity isn't achievable because MLX RNG ≠ PyTorch RNG, but model code and post-processing are bit-faithful within bf16 precision floor (verified via per-block hidden-state diff against a CUDA reference dump; see [`scripts/diag_per_block_compare.py`](./scripts/diag_per_block_compare.py)). Pass `--vertex-colors` to opt out of UV atlas baking for a smaller vertex-colored GLB.
 
 ---
 
@@ -75,7 +75,7 @@ Weights were converted from the upstream `microsoft/TRELLIS.2-4B` safetensors sh
      └─────────┘
 ```
 
-Texture (PBR) pipeline uses a parallel Stage 3 sparse DiT + 2nd sparse UNet VAE; weights are converted and shipped but not yet wired into the runtime pipeline. See the component manifest in [`config.json`](./config.json).
+Texture (PBR) pipeline adds a parallel **Stage 3**: a 1.3B sparse DiT (`tex_flow`) cross-attending to image cond and concat-conditioning on the shape latent, plus a 2nd sparse UNet VAE that decodes a `(F, 32)` texture latent to per-voxel PBR attributes (RGB, metallic, roughness, alpha). Both run end-to-end via [`scripts/run_example_pbr.py`](./scripts/run_example_pbr.py). See the component manifest in [`config.json`](./config.json).
 
 ---
 
@@ -119,17 +119,18 @@ uv run python scripts/run_example.py \
     --pipeline-type 512
 ```
 
-**Geometry + PBR (7 stages — adds ~90s of texture flow + VAE):**
+**Geometry + PBR (7 stages, full UV atlas; ~10 min total on M-series MacBook):**
 
 ```bash
 uv run python scripts/run_example_pbr.py \
     --image upstream/assets/example_image/T.png \
     --out  artifacts/sample_pbr.glb \
-    --pipeline-type 512 \
-    --dit-dtype float16
+    --pipeline-type 512
 ```
 
-The PBR runner ships a vertex-colored GLB by default (renders in Quick Look, Blender, three.js, etc.). Pass `--atlas` to opt into the experimental UV-atlas baker; it currently segfaults inside `xatlas` on TRELLIS dual-grid topology and is left in tree for future work — see Roadmap.
+Default output is a UV-atlas-textured GLB with full PBR materials (base color + metallic-roughness + alpha, 2k atlas). Pass `--vertex-colors` to skip UV unwrap + atlas bake for a smaller vertex-colored GLB (faster but lower fidelity, suitable for quick-look comparisons).
+
+`--dit-dtype` defaults to `bfloat16` to match upstream's training/inference dtype. Pass `--dit-dtype float16` for ~32% faster sampling at sub-pixel mesh deviation; the float16 grid is finer than upstream's bf16, so single-seed parity diverges measurably even though visual quality is essentially identical (see [Performance](#performance) below).
 
 Or from Python:
 
@@ -192,6 +193,29 @@ Mesh output: 6,772,966 verts / 13,554,918 faces (4.1× the 512 mesh, same bbox, 
 | **Total**                                           | **~30 min** |
 
 Mesh output: 6,946,823 verts / 14,091,496 faces. ~7% faster than direct `1024` because the low-res pass constrains the active-voxel set before the expensive HR flow. The cascade tokens end up very close to direct `1024` (18902 vs 19104) so on T.png the speedup is modest; on images whose low-res structure is much sparser than the high-res, the gap widens.
+
+### `pipeline_type="512"` + full PBR + UV atlas
+
+| Stage                                       | Time   |
+| ------------------------------------------- | -----: |
+| Preprocess                                  |   0.1s |
+| DINOv3 image conditioning                   |   3.2s |
+| SS flow (dense DiT) + decoder               | 127.5s |
+| Shape SLat flow (sparse DiT)                | 112.6s |
+| Shape VAE decode + dual-grid mesh           |  24.0s |
+| Tex SLat flow (sparse DiT)                  |  65.8s |
+| Tex VAE decode → per-vertex PBR             |  19.6s |
+| **Sampling + decode subtotal**              | **~5m53s** |
+| Decimate (3.4M → 500k faces)                |   3.7s |
+| UV unwrap (cone-cluster + per-chart xatlas) | 206.7s |
+| Atlas bake (BVH per-texel, 2k atlas)        |  62.2s |
+| GLB write                                   |   1.3s |
+| **Post-processing subtotal**                | **~4m34s** |
+| **Total**                                   | **~10m27s** |
+
+Output: 1.7M-vert dual-grid mesh decimated to 500k faces; 2048×2048 atlas with base-color RGBA + metallic-roughness; ~32 MB GLB.
+
+UV unwrap is the largest single line item — most of it is the per-chart xatlas calls inside cone-cluster (~150k charts on the steampunk T-shape). For applications that don't need texture atlases, `--vertex-colors` skips post-processing entirely (write 1.3s) and shipping the per-vertex PBR directly.
 
 The flow DiTs currently dominate wall-clock; the sparse VAE has been tuned (batched `np.searchsorted` neighbor maps, per-kernel conv fused via gather, vectorized C2S subdivision) and micro-benchmarks in the 900–3000 GFLOPS range per submanifold conv. The 1024 shape-flow cost grows roughly with the square of the token count (self-attention), so the difference between 512 and 1024 is mostly attention compute. Further DiT-side optimization is planned — see [Roadmap](#roadmap).
 
@@ -291,8 +315,10 @@ pipe = Trellis2ImageTo3DPipelineMLX.from_pretrained(
 | Shape SLat DiT (1024) | `SLatFlowModel` | bf16 | `ckpts/slat_flow_img2shape_dit_1_3B_1024.safetensors` | ⏳ |
 | Shape VAE decoder | `FlexiDualGridVaeDecoder` | fp16 | `ckpts/shape_dec_next_dc_f16c32.safetensors` | ✅ |
 | Shape VAE encoder | `FlexiDualGridVaeEncoder` | fp16 | `ckpts/shape_enc_next_dc_f16c32.safetensors` | — *(training)* |
-| Tex SLat DiT (512/1024) | `SLatFlowModel` | bf16 | `ckpts/slat_flow_imgshape2tex_dit_1_3B_{512,1024}.safetensors` | ⏳ |
-| Tex VAE decoder/encoder | `SparseUnetVaeDecoder`/`Encoder` | fp16 | `ckpts/tex_{dec,enc}_next_dc_f16c32.safetensors` | ⏳ |
+| Tex SLat DiT (512) | `SLatFlowModel` | bf16 | `ckpts/slat_flow_imgshape2tex_dit_1_3B_512.safetensors` | ✅ |
+| Tex SLat DiT (1024) | `SLatFlowModel` | bf16 | `ckpts/slat_flow_imgshape2tex_dit_1_3B_1024.safetensors` | ⏳ |
+| Tex VAE decoder | `SparseUnetVaeDecoder` | fp16 | `ckpts/tex_dec_next_dc_f16c32.safetensors` | ✅ |
+| Tex VAE encoder | `SparseUnetVaeEncoder` | fp16 | `ckpts/tex_enc_next_dc_f16c32.safetensors` | — *(training)* |
 | Image encoder | DINOv3 ViT-L/16 (torch) | — | external: `facebook/dinov3-vitl16-pretrain-lvd1689m` | ✅ |
 | Background removal | BiRefNet (torch) | — | external: `briaai/RMBG-2.0` | ✅ on-demand for non-RGBA inputs |
 
@@ -333,20 +359,22 @@ Checks:
 ## Roadmap
 
 **Immediate:**
-- **Stable UV-atlas baker.** The current `--atlas` path segfaults inside `xatlas.parametrize` on TRELLIS dual-grid meshes (non-manifold topology, T-junctions, zero-area triangles from dual-grid extraction). Either (a) a manifold-ize / weld-degenerate-edges preprocess before xatlas, or (b) swap to a topology-tolerant unwrapper. The decimate + bake + glTF-PBR-write code is in tree (`trellis2_mlx/postprocess/atlas.py` + `glb_export.py:export_pbr_glb`); only the unwrap step is broken.
-- `pipeline_type="1536_cascade"` smoke — the code path is wired (same as `1024_cascade` with `hr_resolution=1536`), but the token count is expected to blow past the 49k cap on most inputs. Upstream's cap-downgrade fallback is implemented; needs a machine with 64+ GB to verify.
-- Native-MLX port of DINOv3 to remove the torch dependency at inference time (saves the ~3–4s torch-CPU cost).
+- **DiT performance.** Sampling dominates wall-clock (~5 min of the ~10-min PBR run). Likely wins: graph-level fusion, attention kernel tuning for our specific (1, F, C) sparse shapes, KV-cache for fixed-cond CFG passes.
+- **Mesh quality.** Polygon faceting visible on small features (gears, rivets) compared to upstream — likely from `fast-simplification`'s topology-agnostic decimation vs CuMesh's curvature-aware decimator. Worth investigating a port of CuMesh's decimator.
+- **Native-MLX DINOv3 port.** Removes the last torch dependency at inference time (saves the ~3–4s torch-CPU cost and the gated-model headache for new contributors).
+- **`pipeline_type="1536_cascade"`** — code path is wired (same as `1024_cascade` with `hr_resolution=1536`), but token count blows past the 49k cap on most inputs. Cap-downgrade fallback is implemented; needs a machine with 64+ GB to verify.
 
 **v2:**
+- 1024-resolution shape + tex DiTs at full quality (currently shape@1024 takes ~32 min, tex@1024 isn't smoke-tested).
 - Int8/Int4 weight quantization (deferred after numerical investigation — int4 errors compound to 268% p99 across 30 blocks; int8 is borderline at 12% drift; neither offers speed gains on M1 Pro for our matmul shapes; see `scripts/verify_quant_numerics.py`).
 
-**v2:**
-- Texture pipeline (`Trellis2ImageToTexturedGLBPipelineMLX`). Backbone + VAE arch is identical to shape; concat-condition on shape latent; weights are already converted in `ckpts/*tex*.safetensors`.
-- UV atlas baking via `xatlas-python` + `trimesh`; PBR material bake per voxel.
-
-**v3:**
-- `pipeline_type="1536_cascade"`. Needs 64+ GB unified memory.
-- Native-MLX port of DINOv3 to remove the final torch dependency at inference time.
+**Diagnostic / verification tooling** (in tree, see [`scripts/`](./scripts)):
+- `dump_upstream_intermediates.py` + `runpod_setup.sh` — capture upstream CUDA reference dump on a RunPod A100. Per-stage tensors, per-block hidden states, optional per-stage noise capture.
+- `diff_intermediates.py` — distribution diff vs cached `pbr_intermediates.npz`.
+- `diag_per_block_compare.py` — ours vs upstream per-block hidden-state comparator under controlled zero input. Used to verify bf16 compute path matches upstream within precision floor.
+- `replay_upstream_noise.py` — RNG isolation: feeds upstream's noise into our pipeline to separate RNG-driven variance from model bugs.
+- `replay_upstream_through_our_vae.py` — VAE bit-exact verifier.
+- `rebake_from_cache.py` — skip-sampling rebake for fast iteration on atlas/export changes.
 
 ---
 
