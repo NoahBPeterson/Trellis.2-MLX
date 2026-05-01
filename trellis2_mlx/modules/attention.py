@@ -58,6 +58,15 @@ class MultiHeadAttention(nn.Module):
 
         self.to_out = nn.Linear(channels, channels)
 
+        # Cross-attn cache: id(context) -> (k, v) in SDPA layout (B, H, Lkv, D),
+        # post-k_rms_norm. Cross-attn K,V are constant across all sampler steps
+        # for a given cond, so we compute once per (block, cond) pair instead of
+        # 12× per pair. Cleared by the flow model's clear_caches().
+        self._cross_kv_cache: dict = {}
+
+    def clear_cross_kv_cache(self) -> None:
+        self._cross_kv_cache.clear()
+
     def __call__(
         self,
         x: mx.array,
@@ -77,20 +86,31 @@ class MultiHeadAttention(nn.Module):
                 assert phases is not None, "RoPE requires phases"
                 q = RotaryPositionEmbedder.apply_rotary_embedding(q, phases)
                 k = RotaryPositionEmbedder.apply_rotary_embedding(k, phases)
+            # SDPA layout (B, H, L, D)
+            q = q.transpose(0, 2, 1, 3)
+            k = k.transpose(0, 2, 1, 3)
+            v = v.transpose(0, 2, 1, 3)
         else:
             assert context is not None, "cross attention needs context"
-            Lkv = context.shape[1]
             q = self.to_q(x).reshape(B, L, H, D)
-            kv = self.to_kv(context).reshape(B, Lkv, 2, H, D)
-            k, v = kv[:, :, 0], kv[:, :, 1]
             if self.qk_rms_norm:
                 q = self.q_rms_norm(q)
-                k = self.k_rms_norm(k)
+            q = q.transpose(0, 2, 1, 3)
 
-        # MLX scaled_dot_product_attention expects (B, H, L, D)
-        q = q.transpose(0, 2, 1, 3)
-        k = k.transpose(0, 2, 1, 3)
-        v = v.transpose(0, 2, 1, 3)
+            cache_key = id(context)
+            cached = self._cross_kv_cache.get(cache_key)
+            if cached is not None:
+                k, v = cached
+            else:
+                Lkv = context.shape[1]
+                kv = self.to_kv(context).reshape(B, Lkv, 2, H, D)
+                k, v = kv[:, :, 0], kv[:, :, 1]
+                if self.qk_rms_norm:
+                    k = self.k_rms_norm(k)
+                k = k.transpose(0, 2, 1, 3)
+                v = v.transpose(0, 2, 1, 3)
+                self._cross_kv_cache[cache_key] = (k, v)
+
         out = _mx_sdpa(q, k, v, scale=D**-0.5)  # (B, H, L, D)
         out = out.transpose(0, 2, 1, 3).reshape(B, L, C)
         return self.to_out(out)

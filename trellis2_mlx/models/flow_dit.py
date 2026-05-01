@@ -86,6 +86,10 @@ class SparseStructureFlowModel(nn.Module):
         # Cache slot; populated on first forward
         self._cached_phases = None
         self._cached_pos_emb = None
+        # id(outer_cond) -> casted_cond. Needed so cross-attn's id-keyed K,V
+        # cache hits across sampler steps: each step would otherwise create a
+        # fresh casted cond (new id), defeating the inner cache.
+        self._cond_cache: dict = {}
 
         self.input_layer = nn.Linear(in_channels, model_channels)
         self.blocks = [
@@ -99,6 +103,11 @@ class SparseStructureFlowModel(nn.Module):
             for _ in range(num_blocks)
         ]
         self.out_layer = nn.Linear(model_channels, out_channels)
+
+    def clear_caches(self) -> None:
+        self._cond_cache.clear()
+        for block in self.blocks:
+            block.cross_attn.clear_cross_kv_cache()
 
     def __call__(self, x: mx.array, t: mx.array, cond: mx.array) -> mx.array:
         """x: (B, C, R, R, R); t: (B,); cond: (B, N_cond, cond_channels).
@@ -129,7 +138,14 @@ class SparseStructureFlowModel(nn.Module):
         compute_dtype = self.input_layer.weight.dtype
         h = h.astype(compute_dtype)
         t_emb = t_emb.astype(compute_dtype)
-        cond = cond.astype(compute_dtype)
+        # Cache the casted cond by outer id so cross-attn's K,V cache stays warm
+        # across sampler steps. Cleared via clear_caches().
+        cond_id = id(cond)
+        cached_cond = self._cond_cache.get(cond_id)
+        if cached_cond is None:
+            cached_cond = cond.astype(compute_dtype)
+            self._cond_cache[cond_id] = cached_cond
+        cond = cached_cond
         phases = None
         if self.pe_mode == "rope":
             if self._cached_phases is None:
@@ -211,6 +227,13 @@ class SLatFlowModel(nn.Module):
             for _ in range(num_blocks)
         ]
         self.out_layer = nn.Linear(model_channels, out_channels)
+        # Same cond cache as SparseStructureFlowModel — see notes there.
+        self._cond_cache: dict = {}
+
+    def clear_caches(self) -> None:
+        self._cond_cache.clear()
+        for block in self.blocks:
+            block.cross_attn.clear_cross_kv_cache()
 
     def __call__(
         self,
@@ -240,7 +263,12 @@ class SLatFlowModel(nn.Module):
         compute_dtype = self.input_layer.weight.dtype
         h_feats = h_feats.astype(compute_dtype)
         t_emb = t_emb.astype(compute_dtype)
-        cond = cond.astype(compute_dtype)
+        cond_id = id(cond)
+        cached_cond = self._cond_cache.get(cond_id)
+        if cached_cond is None:
+            cached_cond = cond.astype(compute_dtype)
+            self._cond_cache[cond_id] = cached_cond
+        cond = cached_cond
 
         # Position encoding
         phases = None

@@ -151,6 +151,9 @@ class FlowEulerGuidanceIntervalSampler:
                 mx.eval(sample)
             hist_x_t.append(sample)
             hist_x_0.append(self._v_to_xstart(sample, t_prev, pred_v))
+        # Release ~250 MB of cached cross-attn K/V tensors before the next stage.
+        if hasattr(model, "clear_caches"):
+            model.clear_caches()
         return {"samples": sample, "pred_x_t": hist_x_t, "pred_x_0": hist_x_0}
 
 
