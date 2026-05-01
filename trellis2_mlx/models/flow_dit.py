@@ -101,7 +101,16 @@ class SparseStructureFlowModel(nn.Module):
         self.out_layer = nn.Linear(model_channels, out_channels)
 
     def __call__(self, x: mx.array, t: mx.array, cond: mx.array) -> mx.array:
-        """x: (B, C, R, R, R); t: (B,); cond: (B, N_cond, cond_channels)."""
+        """x: (B, C, R, R, R); t: (B,); cond: (B, N_cond, cond_channels).
+
+        Mirrors upstream's manual_cast pattern: input_layer + APE in fp32, then
+        cast h/t_emb/cond to compute_dtype (typically bf16) before the block
+        loop, and cast back to fp32 before the final layer_norm + out_layer.
+        Without this, MLX's Linear(fp32_in, bf16_w) promotes to fp32 throughout
+        and the blocks compute in fp32 — diverging from upstream's pure-bf16
+        block compute and propagating ~0.5%/block precision drift through
+        sampling, which flips ~6% of borderline-occupancy voxels.
+        """
         B, C, R1, R2, R3 = x.shape
         assert R1 == R2 == R3 == self.resolution, f"Expected {self.resolution}^3, got {R1}x{R2}x{R3}"
         # (B, C, R, R, R) -> (B, R*R*R, C)
@@ -116,6 +125,11 @@ class SparseStructureFlowModel(nn.Module):
         t_emb = self.t_embedder(t)
         if self.share_mod:
             t_emb = self.adaLN_modulation(t_emb)
+        # Cast to compute dtype (mirrors upstream's manual_cast). No-op if fp32.
+        compute_dtype = self.input_layer.weight.dtype
+        h = h.astype(compute_dtype)
+        t_emb = t_emb.astype(compute_dtype)
+        cond = cond.astype(compute_dtype)
         phases = None
         if self.pe_mode == "rope":
             if self._cached_phases is None:
@@ -123,6 +137,8 @@ class SparseStructureFlowModel(nn.Module):
             phases = self._cached_phases[None]  # (1, L, pairs, 2)
         for block in self.blocks:
             h = block(h, t_emb, cond, phases=phases)
+        # Cast back to fp32 for final layer_norm + out_layer (mirrors upstream).
+        h = h.astype(mx.float32)
         h = _layer_norm_last(h)
         h = self.out_layer(h)
         # (B, L, Cout) -> (B, Cout, R, R, R)
@@ -206,6 +222,11 @@ class SLatFlowModel(nn.Module):
         """x: SparseTensor with feats (F, in_channels); t: (B,); cond: (B, N_cond, cond_channels).
 
         For B=1 inference, feats is (F, C) and self-attention is dense over F tokens.
+
+        Mirrors upstream's manual_cast pattern: input_layer in fp32, then cast
+        h_feats / t_emb / cond to compute_dtype (typically bf16) before the
+        block loop, and cast back to fp32 before final layer_norm + out_layer.
+        See SparseStructureFlowModel.__call__ for the same rationale.
         """
         if concat_cond is not None:
             x = x.replace(mx.concatenate([x.feats, concat_cond.feats], axis=-1))
@@ -215,6 +236,12 @@ class SLatFlowModel(nn.Module):
         if self.share_mod:
             t_emb = self.adaLN_modulation(t_emb)  # (B, 6C)
 
+        # Cast to compute dtype (mirrors upstream's manual_cast). No-op if fp32.
+        compute_dtype = self.input_layer.weight.dtype
+        h_feats = h_feats.astype(compute_dtype)
+        t_emb = t_emb.astype(compute_dtype)
+        cond = cond.astype(compute_dtype)
+
         # Position encoding
         phases = None
         if self.pe_mode == "rope":
@@ -222,14 +249,16 @@ class SLatFlowModel(nn.Module):
             phases = self._rope(x.coords[:, 1:].astype(mx.float32))  # (F, pairs, 2)
             phases = phases[None]  # (1, F, pairs, 2) for B=1
         elif self.pe_mode == "ape":
-            pe = self._ape(x.coords[:, 1:].astype(mx.float32))  # (F, C)
-            h_feats = h_feats + pe
+            pe = self._ape(x.coords[:, 1:].astype(mx.float32))  # (F, C) in fp32
+            h_feats = h_feats + pe.astype(compute_dtype)
 
         # For B=1, reshape (F, C) -> (1, F, C) for the dense block
         assert t_emb.shape[0] == 1, "Sparse DiT currently supports B=1 inference only"
         h = h_feats[None]  # (1, F, C)
         for block in self.blocks:
             h = block(h, t_emb, cond, phases=phases)
+        # Cast back to fp32 for final layer_norm + out_layer (mirrors upstream).
+        h = h.astype(mx.float32)
         h = _layer_norm_last(h)
         h = self.out_layer(h)
 

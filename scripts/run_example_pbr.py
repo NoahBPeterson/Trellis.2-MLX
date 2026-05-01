@@ -47,7 +47,11 @@ def main() -> int:
     p.add_argument("--pipeline-type", type=str, default="512")
     p.add_argument("--dino-device", type=str, default="cpu")
     p.add_argument("--rembg-device", type=str, default="auto")
-    p.add_argument("--dit-dtype", type=str, default="float16", choices=["bfloat16", "float16"])
+    p.add_argument("--dit-dtype", type=str, default="bfloat16", choices=["bfloat16", "float16"],
+                   help="bfloat16 matches upstream's training/inference dtype (default). "
+                        "float16 has a finer grid step than bf16 — produces sharper-precision "
+                        "intermediates that diverge from upstream's bf16-trained behavior, "
+                        "flipping ~6%% of borderline-occupancy voxels in SS sampling.")
     # Default is the full atlas path. --vertex-colors opts out and ships
     # a vertex-colored GLB instead (skips decimate+UV unwrap+bake).
     p.add_argument("--vertex-colors", action="store_true",
@@ -90,8 +94,10 @@ def main() -> int:
 
         if args.cache is not None:
             args.cache.parent.mkdir(parents=True, exist_ok=True)
-            np.savez_compressed(args.cache, V=V, F=F, vertex_attrs=vertex_attrs)
-            print(f"cached intermediates to {args.cache}")
+            extras = getattr(pipe, "_last_intermediates", {}) or {}
+            np.savez_compressed(args.cache, V=V, F=F, vertex_attrs=vertex_attrs, **extras)
+            print(f"cached intermediates to {args.cache}  "
+                  f"(keys: {sorted(['V', 'F', 'vertex_attrs'] + list(extras.keys()))})")
 
     print(f"\nVertex attr summary:")
     print(f"  base_color RGB:  min={vertex_attrs[:, :3].min(0).round(3).tolist()}  max={vertex_attrs[:, :3].max(0).round(3).tolist()}  mean={vertex_attrs[:, :3].mean(0).round(3).tolist()}")

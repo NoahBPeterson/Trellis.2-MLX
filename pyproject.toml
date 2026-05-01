@@ -12,6 +12,7 @@ dependencies = [
     "easydict>=1.13",
     "tqdm>=4.66",
     "pillow>=10.0",
+    "opencv-python>=4.13.0.92",
 ]
 
 [project.optional-dependencies]

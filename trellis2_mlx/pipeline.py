@@ -215,6 +215,12 @@ class Trellis2ImageTo3DPipelineMLX:
         if dit_compute_dtype not in ("bfloat16", "float16"):
             raise ValueError(f"dit_compute_dtype must be 'bfloat16' or 'float16', got {dit_compute_dtype!r}")
         self.dit_compute_dtype = getattr(mx, dit_compute_dtype)
+        # Optional dict of pre-computed noise tensors keyed by stage name
+        # ("ss" / "shape_slat" / "tex_slat"). When set, the corresponding
+        # _sample_*() bypasses mx.random.normal(...) and uses the supplied
+        # noise instead. Used by scripts/replay_upstream_noise.py to isolate
+        # RNG-induced divergence from model-induced divergence.
+        self._noise_override: Optional[dict[str, mx.array]] = None
         if pipeline_type not in _PIPELINE_PARAMS:
             raise ValueError(f"unknown pipeline_type {pipeline_type!r}; expected one of {list(_PIPELINE_PARAMS)}")
         p = _PIPELINE_PARAMS[pipeline_type]
@@ -309,8 +315,11 @@ class Trellis2ImageTo3DPipelineMLX:
     def _sample_ss(self, cond: mx.array, neg: mx.array, seed: int) -> mx.array:
         """Run SS flow + decoder -> binary (1, 1, 64, 64, 64) occupancy."""
         params = self.pipeline_config["sparse_structure_sampler"]["params"]
-        mx.random.seed(seed)
-        noise = mx.random.normal((1, 8, 16, 16, 16))
+        if self._noise_override is not None and "ss" in self._noise_override:
+            noise = self._noise_override["ss"]
+        else:
+            mx.random.seed(seed)
+            noise = mx.random.normal((1, 8, 16, 16, 16))
         z_s = self.sampler.sample(
             self.ss_flow, noise,
             cond=cond, neg_cond=neg,
@@ -352,10 +361,17 @@ class Trellis2ImageTo3DPipelineMLX:
     ) -> SparseTensor:
         """Run `flow` on the given coords → denormalized shape latent."""
         params = self.pipeline_config["shape_slat_sampler"]["params"]
-        mx.random.seed(seed_offset)
         F = coords.shape[0]
         spatial = (flow.resolution, flow.resolution, flow.resolution)
-        noise_feats = mx.random.normal((F, flow.in_channels))
+        if self._noise_override is not None and "shape_slat" in self._noise_override:
+            noise_feats = self._noise_override["shape_slat"]
+            assert noise_feats.shape == (F, flow.in_channels), (
+                f"shape_slat noise override shape mismatch: got {tuple(noise_feats.shape)}, "
+                f"expected ({F}, {flow.in_channels}). Coords likely diverged upstream of this stage."
+            )
+        else:
+            mx.random.seed(seed_offset)
+            noise_feats = mx.random.normal((F, flow.in_channels))
         noise = SparseTensor(feats=noise_feats, coords=coords, spatial_shape=spatial)
         slat = self.sampler.sample(
             flow, noise,
@@ -433,8 +449,15 @@ class Trellis2ImageTo3DPipelineMLX:
         F = shape_slat.coords.shape[0]
         noise_dim = self.tex_flow.in_channels - shape_slat.feats.shape[1]
         assert noise_dim == 32, f"expected 32 noise channels for tex flow (in_channels=64, shape=32), got {noise_dim}"
-        mx.random.seed(seed_offset)
-        noise_feats = mx.random.normal((F, noise_dim))
+        if self._noise_override is not None and "tex_slat" in self._noise_override:
+            noise_feats = self._noise_override["tex_slat"]
+            assert noise_feats.shape == (F, noise_dim), (
+                f"tex_slat noise override shape mismatch: got {tuple(noise_feats.shape)}, "
+                f"expected ({F}, {noise_dim}). Active voxel count diverged upstream."
+            )
+        else:
+            mx.random.seed(seed_offset)
+            noise_feats = mx.random.normal((F, noise_dim))
         spatial = (self.tex_flow.resolution,) * 3
         noise = SparseTensor(feats=noise_feats, coords=shape_slat.coords, spatial_shape=spatial)
         slat = self.sampler.sample(
@@ -581,6 +604,19 @@ class Trellis2ImageTo3DPipelineMLX:
         n = min(per_voxel_attrs.shape[0], V.shape[0])
         vertex_attrs = per_voxel_attrs[:n]
         t7 = _time.time(); print(f"      vertex attrs: {vertex_attrs.shape}  rgb_mean={vertex_attrs[:, :3].mean():.3f}  alpha_mean={vertex_attrs[:, 5].mean():.3f}   +{t7-t6:.1f}s   {prog.stage_done('tex_vae')}")
+
+        # Stash latents for offline comparison against upstream's dump
+        # (artifacts/upstream_ref.npz). All denormalized at the point of capture
+        # — matches what scripts/dump_upstream_intermediates.py saves.
+        self._last_intermediates = {
+            "cond_512":           np.asarray(cond_512),
+            "ss_coords":          np.asarray(coords).astype(np.int32),
+            "shape_slat_coords":  np.asarray(slat.coords).astype(np.int32),
+            "shape_slat_feats":   np.asarray(slat.feats).astype(np.float32),
+            "tex_slat_coords":    np.asarray(tex_slat.coords).astype(np.int32),
+            "tex_slat_feats":     np.asarray(tex_slat.feats).astype(np.float32),
+            "voxel_attrs":        np.asarray(per_voxel_attrs).astype(np.float32),
+        }
         return V, F, vertex_attrs
 
     @classmethod
