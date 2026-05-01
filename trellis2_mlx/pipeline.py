@@ -23,6 +23,7 @@ Texture pipeline (tex flow + tex VAE + UV atlas bake) is deferred.
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 from typing import Optional, Tuple
 
@@ -49,48 +50,56 @@ def _load_config(path: Path) -> dict:
     return json.loads(path.read_text())
 
 
-# Prefix stripped on load; kept in sync with scripts/prefix_checkpoints.py
-_CKPT_PREFIXES: dict[str, str] = {
-    "ss_flow_img_dit_1_3B_64.safetensors":                  "ss_flow",
-    "ss_dec_conv3d_16l8.safetensors":                       "ss_dec",
-    "slat_flow_img2shape_dit_1_3B_512.safetensors":         "shape_flow_512",
-    "slat_flow_img2shape_dit_1_3B_1024.safetensors":        "shape_flow_1024",
-    "slat_flow_imgshape2tex_dit_1_3B_512.safetensors":      "tex_flow_512",
-    "slat_flow_imgshape2tex_dit_1_3B_1024.safetensors":     "tex_flow_1024",
-    "shape_dec_next_dc_f16c32.safetensors":                 "shape_dec",
-    "shape_enc_next_dc_f16c32.safetensors":                 "shape_enc",
-    "tex_dec_next_dc_f16c32.safetensors":                   "tex_dec",
-    "tex_enc_next_dc_f16c32.safetensors":                   "tex_enc",
-}
+# --- load-time torch → MLX conversion ---------------------------------------
+# Upstream `microsoft/TRELLIS.2-4B` ships torch safetensors. We convert each
+# tensor on the fly at load time:
+#   1. dtype: bf16 round-trips through fp32 because numpy can't bf16
+#   2. key rename: torch's `nn.Sequential` indexes children directly
+#      (`mlp.0.weight`); MLX stores them under `.layers[i]` (`mlp.layers.0.weight`)
+#   3. dense Conv3d axis permute: torch is (Co, Ci, Kd, Kh, Kw); MLX is
+#      (Co, Kd, Kh, Kw, Ci). Sparse conv weights are already in MLX layout.
+
+def _translate_key(k: str) -> str:
+    """Rewrite upstream torch keys for MLX's nn.Sequential.layers indexing."""
+    k = re.sub(r"\.mlp\.(\d+)\.", r".mlp.layers.\1.", k)
+    k = re.sub(r"^t_embedder\.mlp\.(\d+)\.", r"t_embedder.mlp.layers.\1.", k)
+    k = re.sub(r"(^|\.)adaLN_modulation\.(\d+)\.", r"\1adaLN_modulation.layers.\2.", k)
+    k = re.sub(r"^middle_block\.(\d+)\.", r"middle_block.layers.\1.", k)
+    k = re.sub(r"^out_layer\.(\d+)\.", r"out_layer.layers.\1.", k)
+    return k
 
 
-def _load_weights_prefixed(module, path: Path, cast_dtype: Optional["mx.Dtype"] = None) -> None:
-    """Load MLX safetensors where every tensor is prefixed `<component>.`; strip the
-    prefix so `module.load_weights` sees the bare submodule names it expects.
-
-    Optionally cast every loaded tensor to `cast_dtype` (e.g., to convert bf16
-    DiT weights to fp16 for faster Metal SDPA). Cast happens before load, so the
-    target dtype lives on-disk-equivalent in memory — no extra copy at use time.
-    """
-    path = Path(path)
-    prefix = _CKPT_PREFIXES.get(path.name)
-    if prefix is None:
-        if cast_dtype is None:
-            module.load_weights(str(path))
-        else:
-            raw = mx.load(str(path))
-            casted = [(k, v.astype(cast_dtype)) for k, v in raw.items()]
-            module.load_weights(casted)
-        return
-    raw = mx.load(str(path))
-    pfx = prefix + "."
-    if all(k.startswith(pfx) for k in raw):
-        items = [(k[len(pfx):], v) for k, v in raw.items()]
+def _convert_torch_tensor(key: str, t) -> tuple[str, mx.array]:
+    """Apply per-tensor transforms: dtype handling, key rename, conv-axis permute."""
+    dt = str(t.dtype).replace("torch.", "")
+    if dt == "bfloat16":
+        arr = mx.array(t.float().numpy()).astype(mx.bfloat16)
+    elif dt in ("float16", "float32"):
+        arr = mx.array(t.numpy())
     else:
-        # Legacy un-prefixed file
-        items = list(raw.items())
-    if cast_dtype is not None:
-        items = [(k, v.astype(cast_dtype)) for k, v in items]
+        raise RuntimeError(f"unsupported torch dtype {t.dtype} for {key!r}")
+    shape = tuple(t.shape)
+    if len(shape) == 5 and shape[-3:] == (3, 3, 3) and shape[1] != 3:
+        arr = arr.transpose(0, 2, 3, 4, 1)
+    return _translate_key(key), arr
+
+
+def _load_torch_safetensors(module, src: Path, *, cast_dtype: Optional["mx.Dtype"] = None) -> None:
+    """Stream-convert an upstream torch safetensors file into `module`.
+
+    Tensors are released after conversion so peak memory stays bounded to one
+    tensor's worth of torch+MLX overlap, not the full shard.
+    """
+    from safetensors import safe_open
+    items: list[tuple[str, mx.array]] = []
+    with safe_open(str(src), framework="pt") as f:
+        for key in f.keys():
+            t = f.get_tensor(key)
+            new_key, arr = _convert_torch_tensor(key, t)
+            if cast_dtype is not None:
+                arr = arr.astype(cast_dtype)
+            items.append((new_key, arr))
+            del t
     module.load_weights(items)
 
 
@@ -272,37 +281,39 @@ class Trellis2ImageTo3DPipelineMLX:
     # --- model loaders -----------------------------------------------------
 
     def _load_ss_flow(self) -> SparseStructureFlowModel:
-        cfg = _load_config(self.ckpt_dir / "ss_flow_img_dit_1_3B_64.config.json")
+        cfg = _load_config(self.ckpt_dir / "ss_flow_img_dit_1_3B_64_bf16.json")
         m = SparseStructureFlowModel(**_strip_unused(cfg["args"]))
-        _load_weights_prefixed(m, self.ckpt_dir / "ss_flow_img_dit_1_3B_64.safetensors", cast_dtype=self.dit_compute_dtype)
+        _load_torch_safetensors(m, self.ckpt_dir / "ss_flow_img_dit_1_3B_64_bf16.safetensors",
+                                cast_dtype=self.dit_compute_dtype)
         return m
 
     def _load_ss_dec(self) -> SparseStructureDecoder:
-        # SS decoder is always fp16 (small, already converted; never bf16).
-        cfg = _load_config(self.ckpt_dir / "ss_dec_conv3d_16l8.config.json")
+        # SS decoder is fp16 on disk; sourced from microsoft/TRELLIS-image-large
+        # (TRELLIS1), not TRELLIS.2-4B — TRELLIS.2 reuses the v1 SS decoder verbatim.
+        cfg = _load_config(self.ckpt_dir / "ss_dec_conv3d_16l8_fp16.json")
         m = SparseStructureDecoder(**cfg["args"])
-        _load_weights_prefixed(m, self.ckpt_dir / "ss_dec_conv3d_16l8.safetensors")
+        _load_torch_safetensors(m, self.ckpt_dir / "ss_dec_conv3d_16l8_fp16.safetensors")
         return m
 
     def _load_shape_flow(self, stem: str) -> SLatFlowModel:
-        cfg = _load_config(self.ckpt_dir / f"{stem}.config.json")
+        cfg = _load_config(self.ckpt_dir / f"{stem}_bf16.json")
         m = SLatFlowModel(**_strip_unused(cfg["args"]))
-        _load_weights_prefixed(m, self.ckpt_dir / f"{stem}.safetensors", cast_dtype=self.dit_compute_dtype)
+        _load_torch_safetensors(m, self.ckpt_dir / f"{stem}_bf16.safetensors",
+                                cast_dtype=self.dit_compute_dtype)
         return m
 
     def _load_shape_vae(self) -> FlexiDualGridVaeDecoder:
-        # Shape VAE is already fp16 on disk; do not re-cast.
-        cfg = _load_config(self.ckpt_dir / "shape_dec_next_dc_f16c32.config.json")
+        cfg = _load_config(self.ckpt_dir / "shape_dec_next_dc_f16c32_fp16.json")
         m = FlexiDualGridVaeDecoder(**cfg["args"])
-        _load_weights_prefixed(m, self.ckpt_dir / "shape_dec_next_dc_f16c32.safetensors")
+        _load_torch_safetensors(m, self.ckpt_dir / "shape_dec_next_dc_f16c32_fp16.safetensors")
         return m
 
     def _load_tex_vae(self) -> SparseUnetVaeDecoder:
         # Texture VAE: out_channels=6 (PBR), pred_subdiv=False (uses shape decoder's
-        # subdivision masks via guide_subs at decode time). Already fp16 on disk.
-        cfg = _load_config(self.ckpt_dir / "tex_dec_next_dc_f16c32.config.json")
+        # subdivision masks via guide_subs at decode time).
+        cfg = _load_config(self.ckpt_dir / "tex_dec_next_dc_f16c32_fp16.json")
         m = SparseUnetVaeDecoder(**cfg["args"])
-        _load_weights_prefixed(m, self.ckpt_dir / "tex_dec_next_dc_f16c32.safetensors")
+        _load_torch_safetensors(m, self.ckpt_dir / "tex_dec_next_dc_f16c32_fp16.safetensors")
         return m
 
     # --- core steps --------------------------------------------------------
@@ -632,9 +643,8 @@ class Trellis2ImageTo3DPipelineMLX:
     ) -> "Trellis2ImageTo3DPipelineMLX":
         ckpt_dir = Path(ckpt_dir)
         if pipeline_json is None:
-            pipeline_json = ckpt_dir.parent / "weights" / "pipeline.json"
-            if not pipeline_json.exists():
-                pipeline_json = ckpt_dir / "pipeline.json"
+            # ckpt_dir is `<root>/weights/ckpts`; pipeline.json lives next to ckpts/
+            pipeline_json = ckpt_dir.parent / "pipeline.json"
         cfg = _load_config(Path(pipeline_json))
         return cls(
             ckpt_dir=ckpt_dir, pipeline_config=cfg["args"],

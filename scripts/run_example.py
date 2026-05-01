@@ -34,10 +34,11 @@ def main() -> int:
                    help="Compute dtype for the flow DiT weights. fp16 is ~25%% faster but introduces numerical drift; verify mesh quality before relying on it.")
     args = p.parse_args()
 
-    print(f"Loading pipeline from {ROOT / 'ckpts'} ({args.pipeline_type}, dit_dtype={args.dit_dtype})...")
+    weights_dir = ROOT / "weights" / "ckpts"
+    print(f"Loading pipeline from {weights_dir} ({args.pipeline_type}, dit_dtype={args.dit_dtype})...")
     t0 = time.time()
     pipe = Trellis2ImageTo3DPipelineMLX.from_pretrained(
-        ckpt_dir=ROOT / "ckpts",
+        ckpt_dir=weights_dir,
         pipeline_json=ROOT / "weights" / "pipeline.json",
         pipeline_type=args.pipeline_type,
         dino_device=args.dino_device,

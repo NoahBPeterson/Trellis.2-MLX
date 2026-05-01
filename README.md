@@ -19,7 +19,7 @@ tags:
 
 An MLX-native re-implementation of Microsoft's [TRELLIS.2-4B](https://huggingface.co/microsoft/TRELLIS.2-4B) image-to-3D model, running on a MacBook (Apple Silicon, unified memory). The compute-heavy transformer backbones (~4B params across three flow-matching DiTs) and the sparse 3D VAE run on-device via MLX; CUDA-bound post-processing (mesh extraction, UV atlas) is replaced with CPU / pure-Python equivalents.
 
-Weights were converted from the upstream `microsoft/TRELLIS.2-4B` safetensors shards — no re-training, same numerics intent, per-tensor bijection recorded alongside each checkpoint.
+Weights are consumed directly from the upstream `microsoft/TRELLIS.2-4B` torch safetensors at load time — no separate conversion artifacts. The transforms (key rename for `nn.Sequential` indexing, dense Conv3d axis permute, bf16 round-trip) happen inline in [`pipeline.py`](./trellis2_mlx/pipeline.py), keeping a clean `git clone` → `setup.py` → run loop with no re-uploaded weights.
 
 **Status:** single-image → fully textured PBR GLB working end-to-end at `pipeline_type` ∈ {`512`, `1024`, `1024_cascade`}. `1536_cascade` is wired but needs more RAM than most Macs have. The PBR pipeline (cone-cluster UV unwrap + per-texel BVH bake) produces output visually equivalent to upstream CUDA on the reference T.png. Single-seed bit-exact parity isn't achievable because MLX RNG ≠ PyTorch RNG, but model code and post-processing are bit-faithful within bf16 precision floor (verified via per-block hidden-state diff against a CUDA reference dump; see [`scripts/diag_per_block_compare.py`](./scripts/diag_per_block_compare.py)). Pass `--vertex-colors` to opt out of UV atlas baking for a smaller vertex-colored GLB.
 
@@ -95,16 +95,19 @@ Texture (PBR) pipeline adds a parallel **Stage 3**: a 1.3B sparse DiT (`tex_flow
 This repo uses [`uv`](https://docs.astral.sh/uv/) for dependency management.
 
 ```bash
-git clone https://huggingface.co/<user>/trellis-mlx
+git clone https://github.com/NoahBPeterson/Trellis.2-MLX.git trellis-mlx
 cd trellis-mlx
 uv sync --extra postprocess --extra image-cond --extra rembg
+
+# Request access to the gated DINOv3 model first:
+#   https://huggingface.co/facebook/dinov3-vitl16-pretrain-lvd1689m
+hf auth login
+uv run python scripts/setup.py    # downloads ~10 GB of weights, idempotent
 ```
 
-The `rembg` extra installs `kornia`, `timm`, `torchvision` (BiRefNet's runtime deps) and is only needed for inputs that lack an alpha channel — if you always pass pre-composited RGBA images you can drop it.
+`scripts/setup.py` fetches the upstream torch safetensors from `microsoft/TRELLIS.2-4B` plus the SS decoder from `microsoft/TRELLIS-image-large` (TRELLIS.2 reuses TRELLIS-v1's SS decoder verbatim) into `weights/ckpts/`. No conversion step — weights are consumed in their upstream torch layout and transformed at load time.
 
-DINOv3 is an access-gated model; request access at
-[facebook/dinov3-vitl16-pretrain-lvd1689m](https://huggingface.co/facebook/dinov3-vitl16-pretrain-lvd1689m)
-and `huggingface-cli login` before first run. BiRefNet (`briaai/RMBG-2.0`) is downloaded automatically on first non-RGBA input.
+The `rembg` extra installs `kornia`, `timm`, `torchvision` (BiRefNet's runtime deps) and is only needed for inputs without an alpha channel — if you always pass pre-composited RGBA images you can drop it. BiRefNet (`briaai/RMBG-2.0`) is downloaded automatically on first non-RGBA input.
 
 ---
 
@@ -114,7 +117,7 @@ and `huggingface-cli login` before first run. BiRefNet (`briaai/RMBG-2.0`) is do
 
 ```bash
 uv run python scripts/run_example.py \
-    --image upstream/assets/example_image/T.png \
+    --image assets/T.png \
     --out  artifacts/sample.glb \
     --pipeline-type 512
 ```
@@ -123,7 +126,7 @@ uv run python scripts/run_example.py \
 
 ```bash
 uv run python scripts/run_example_pbr.py \
-    --image upstream/assets/example_image/T.png \
+    --image assets/T.png \
     --out  artifacts/sample_pbr.glb \
     --pipeline-type 512
 ```
@@ -140,8 +143,7 @@ from trellis2_mlx.pipeline import Trellis2ImageTo3DPipelineMLX
 from trellis2_mlx.postprocess.glb_export import export_mesh_glb
 
 pipe = Trellis2ImageTo3DPipelineMLX.from_pretrained(
-    ckpt_dir="ckpts",
-    pipeline_json="weights/pipeline.json",
+    ckpt_dir="weights/ckpts",
     pipeline_type="512",
 )
 
@@ -166,7 +168,7 @@ Measured on a reference Apple Silicon MacBook running `scripts/run_example.py` o
 | Shape VAE decode + dual-grid mesh   |  21.7s |
 | **Total**                           | **~410s** |
 
-Mesh output: 1,651,404 verts / 3,501,928 faces.
+Mesh output: 1,730,326 verts / 3,701,394 faces.
 
 ### `pipeline_type="1024"`
 
@@ -244,7 +246,9 @@ The flow DiTs currently dominate wall-clock; the sparse VAE has been tuned (batc
 
 ### Optional: `--dit-dtype float16` (opt-in, ~25–32% faster)
 
-Apple's Metal SDPA and matmul kernels run ~1.3× faster on fp16 inputs than on bf16. Our upstream DiT weights ship as bf16, but can be cast to fp16 at load time via `--dit-dtype float16`. Measured on T.png, 512 pipeline:
+Apple's Metal SDPA and matmul kernels run ~1.3× faster on fp16 inputs than on bf16. Our upstream DiT weights ship as bf16, but can be cast to fp16 at load time via `--dit-dtype float16`.
+
+> **Numbers below are stale**, captured before the bf16-compute fix in [`d616db3`](https://github.com/NoahBPeterson/Trellis.2-MLX/commit/d616db3) — that fix changed the bf16 path's active-voxel count (3548 → 3754), so absolute vert/face values are no longer accurate. The relative ~32% speedup of fp16 over bf16 still holds (it's a hardware-level matmul throughput ratio). Re-measurement is on the to-do list.
 
 |             | bf16 (default) | fp16 (opt-in) |
 | ----------- | -------------: | ------------: |
@@ -265,24 +269,24 @@ For comparison, upstream on an NVIDIA H100 reports ~3s at 512³ and ~17s at 1024
 
 ```
 trellis-mlx/
-├── config.json                          ← top-level HF metadata (see Components below)
 ├── README.md                            ← this file
 ├── pyproject.toml                       ← uv-managed project
-├── weights/pipeline.json                ← sampler params + normalization stats (from upstream)
-├── ckpts/
-│   ├── ss_flow_img_dit_1_3B_64.safetensors            (bf16, 2.4 GB)
-│   ├── ss_flow_img_dit_1_3B_64.config.json
-│   ├── ss_flow_img_dit_1_3B_64.bijection.json         ← torch ↔ MLX tensor-name map
-│   ├── slat_flow_img2shape_dit_1_3B_{512,1024}.*      (bf16, 2.4 GB ea.)
-│   ├── slat_flow_imgshape2tex_dit_1_3B_{512,1024}.*   (bf16, 2.4 GB ea., texture — deferred)
-│   ├── shape_{enc,dec}_next_dc_f16c32.*               (fp16, 676M / 905M)
-│   ├── tex_{enc,dec}_next_dc_f16c32.*                 (fp16, deferred)
-│   └── ss_dec_conv3d_16l8.*                           (fp16, 141M, from TRELLIS-image-large)
+├── assets/T.png                         ← reference input image (committed, ~1.7 MB)
+├── weights/
+│   ├── pipeline.json                    ← sampler params + normalization stats (committed)
+│   └── ckpts/                           ← downloaded by `scripts/setup.py` (gitignored, ~10 GB)
+│       ├── ss_flow_img_dit_1_3B_64_bf16.{safetensors,json}            (2.4 GB)
+│       ├── slat_flow_img2shape_dit_1_3B_{512,1024}_bf16.*             (2.4 GB ea.)
+│       ├── slat_flow_imgshape2tex_dit_1_3B_{512,1024}_bf16.*          (2.4 GB ea.)
+│       ├── shape_dec_next_dc_f16c32_fp16.{safetensors,json}           (905M)
+│       ├── tex_dec_next_dc_f16c32_fp16.{safetensors,json}             (905M)
+│       └── ss_dec_conv3d_16l8_fp16.{safetensors,json}                 (141M, from TRELLIS-image-large)
 ├── trellis2_mlx/
-│   ├── pipeline.py                      ← Trellis2ImageTo3DPipelineMLX
+│   ├── pipeline.py                      ← Trellis2ImageTo3DPipelineMLX + load-time torch→MLX
 │   ├── samplers.py                      ← FlowEulerGuidanceIntervalSampler (pure MLX)
 │   ├── image_cond.py                    ← DinoV3FeatureExtractor (torch wrapper)
 │   ├── preprocess.py                    ← alpha-aware image preprocess
+│   ├── rembg.py                         ← BiRefNet wrapper (lazy, RGB-only inputs)
 │   ├── models/
 │   │   ├── flow_dit.py                  ← SparseStructureFlowModel + SLatFlowModel
 │   │   ├── sparse_vae.py                ← FlexiDualGridVaeDecoder + SparseUnetVaeDecoder
@@ -293,35 +297,25 @@ trellis-mlx/
 │   │   └── sparse_tensor.py
 │   └── postprocess/
 │       ├── dual_grid.py                 ← pure-Python `flexible_dual_grid_to_mesh`
+│       ├── atlas.py                     ← cone-cluster UV unwrap + BVH atlas bake
 │       └── glb_export.py
 ├── scripts/
-│   ├── convert_weights.py               ← torch safetensors → MLX safetensors
-│   ├── inspect_weights.py               ← dumps {name: (shape, dtype)} manifest
-│   ├── run_example.py                   ← image → GLB CLI
-│   ├── bench_sparse_conv.py             ← per-conv GFLOPS micro-bench
-│   └── profile_vae.py                   ← cProfile on shape VAE decode
-├── tests/                               ← attention / DiT / sparse-conv / dual-grid numerics
-└── upstream/                            ← microsoft/TRELLIS.2 clone (for reference + assets)
+│   ├── setup.py                         ← one-shot weight download (HF snapshot_download)
+│   ├── run_example.py                   ← image → GLB CLI (geometry only)
+│   ├── run_example_pbr.py               ← image → textured GLB CLI (full PBR)
+│   ├── rebake_from_cache.py             ← skip-sampling rebake from cached intermediates
+│   ├── dump_upstream_intermediates.py   ← capture CUDA reference dump (for diagnostics)
+│   ├── diff_intermediates.py            ← distribution diff vs cached intermediates
+│   └── diag_*.py, replay_*.py           ← per-block / RNG isolation diagnostics
+└── tests/                               ← attention / DiT / sparse-conv / dual-grid numerics
 ```
-
-**Unified Tensors tab.** Every one of the 4418 tensors across all 10 shards is listed under a single `model.safetensors.index.json`. Because several tensor names (e.g. `blocks.0.self_attn.to_qkv.weight`) naturally repeat across the three 1.3B DiTs, each shard's tensors are prefixed with a component tag so the index keeps a flat, collision-free namespace. Example entries:
-
-```
-ss_flow.blocks.0.self_attn.to_qkv.weight        → ckpts/ss_flow_img_dit_1_3B_64.safetensors
-shape_flow_512.blocks.0.self_attn.to_qkv.weight → ckpts/slat_flow_img2shape_dit_1_3B_512.safetensors
-tex_flow_512.blocks.0.self_attn.to_qkv.weight   → ckpts/slat_flow_imgshape2tex_dit_1_3B_512.safetensors
-shape_dec.blocks.3.1.to_subdiv.weight           → ckpts/shape_dec_next_dc_f16c32.safetensors
-```
-
-The Python pipeline strips the component prefix on load (see `_load_weights_prefixed` in `trellis2_mlx/pipeline.py`); code still sees the original upstream-compatible layer names. The per-file `*.bijection.json` records the pre-prefix torch↔MLX name mapping for each shard, so external tooling that wants to match against upstream `microsoft/TRELLIS.2-4B` can recover the original names too.
 
 **Loading note.** This repo is *not* loadable via `transformers.AutoModel.from_pretrained` — the `transformers` library has no MLX backend. Use:
 
 ```python
 from trellis2_mlx.pipeline import Trellis2ImageTo3DPipelineMLX
 pipe = Trellis2ImageTo3DPipelineMLX.from_pretrained(
-    ckpt_dir="ckpts",
-    pipeline_json="weights/pipeline.json",
+    ckpt_dir="weights/ckpts",
     pipeline_type="512",
 )
 ```
@@ -330,35 +324,30 @@ pipe = Trellis2ImageTo3DPipelineMLX.from_pretrained(
 
 ## Components (summary)
 
-| Component | Class | Dtype | File | Inference |
+| Component | Class | Dtype | File (under `weights/ckpts/`) | Inference |
 | --- | --- | ---: | --- | :---: |
-| SS Flow DiT | `SparseStructureFlowModel` | bf16 | `ckpts/ss_flow_img_dit_1_3B_64.safetensors` | ✅ |
-| SS Decoder | `SparseStructureDecoder` | fp16 | `ckpts/ss_dec_conv3d_16l8.safetensors` | ✅ |
-| Shape SLat DiT (512) | `SLatFlowModel` | bf16 | `ckpts/slat_flow_img2shape_dit_1_3B_512.safetensors` | ✅ |
-| Shape SLat DiT (1024) | `SLatFlowModel` | bf16 | `ckpts/slat_flow_img2shape_dit_1_3B_1024.safetensors` | ⏳ |
-| Shape VAE decoder | `FlexiDualGridVaeDecoder` | fp16 | `ckpts/shape_dec_next_dc_f16c32.safetensors` | ✅ |
-| Shape VAE encoder | `FlexiDualGridVaeEncoder` | fp16 | `ckpts/shape_enc_next_dc_f16c32.safetensors` | — *(training)* |
-| Tex SLat DiT (512) | `SLatFlowModel` | bf16 | `ckpts/slat_flow_imgshape2tex_dit_1_3B_512.safetensors` | ✅ |
-| Tex SLat DiT (1024) | `SLatFlowModel` | bf16 | `ckpts/slat_flow_imgshape2tex_dit_1_3B_1024.safetensors` | ⏳ |
-| Tex VAE decoder | `SparseUnetVaeDecoder` | fp16 | `ckpts/tex_dec_next_dc_f16c32.safetensors` | ✅ |
-| Tex VAE encoder | `SparseUnetVaeEncoder` | fp16 | `ckpts/tex_enc_next_dc_f16c32.safetensors` | — *(training)* |
+| SS Flow DiT | `SparseStructureFlowModel` | bf16 | `ss_flow_img_dit_1_3B_64_bf16.safetensors` | ✅ |
+| SS Decoder | `SparseStructureDecoder` | fp16 | `ss_dec_conv3d_16l8_fp16.safetensors` | ✅ |
+| Shape SLat DiT (512) | `SLatFlowModel` | bf16 | `slat_flow_img2shape_dit_1_3B_512_bf16.safetensors` | ✅ |
+| Shape SLat DiT (1024) | `SLatFlowModel` | bf16 | `slat_flow_img2shape_dit_1_3B_1024_bf16.safetensors` | ✅ |
+| Shape VAE decoder | `FlexiDualGridVaeDecoder` | fp16 | `shape_dec_next_dc_f16c32_fp16.safetensors` | ✅ |
+| Tex SLat DiT (512) | `SLatFlowModel` | bf16 | `slat_flow_imgshape2tex_dit_1_3B_512_bf16.safetensors` | ✅ |
+| Tex SLat DiT (1024) | `SLatFlowModel` | bf16 | `slat_flow_imgshape2tex_dit_1_3B_1024_bf16.safetensors` | ✅ |
+| Tex VAE decoder | `SparseUnetVaeDecoder` | fp16 | `tex_dec_next_dc_f16c32_fp16.safetensors` | ✅ |
 | Image encoder | DINOv3 ViT-L/16 (torch) | — | external: `facebook/dinov3-vitl16-pretrain-lvd1689m` | ✅ |
 | Background removal | BiRefNet (torch) | — | external: `briaai/RMBG-2.0` | ✅ on-demand for non-RGBA inputs |
 
-Full per-component hyperparameters and torch ↔ MLX bijection map live in [`config.json`](./config.json) and each `ckpts/*.config.json`.
+Each safetensors ships with a sibling `<stem>.json` describing the model's constructor args. `setup.py` skips the (unused-at-inference) shape/tex VAE encoders.
 
 ---
 
-## Conversion notes
+## Load-time tensor transforms
 
-The conversion script is [`scripts/convert_weights.py`](./scripts/convert_weights.py). Non-trivial remappings:
+Upstream torch tensors are streamed through three transforms in [`pipeline.py`](./trellis2_mlx/pipeline.py)'s `_convert_torch_tensor`:
 
-- **DiT Sequential wrapping.** Upstream torch uses `nn.Sequential(Linear, SiLU, Linear)` and stores children as `mlp.0`/`mlp.2`. MLX `nn.Sequential` stores children under `.layers[i]` — the converter rewrites `mlp.<N>` → `mlp.layers.<N>` and similar for `adaLN_modulation`, `middle_block`, etc.
-- **Sparse conv weight layout.** Upstream already stores sparse conv kernels as `(Co, Kd, Kh, Kw, Ci)` per [`conv_flex_gemm.py:34`](./upstream/trellis2/modules/sparse/conv/conv_flex_gemm.py). MLX keeps the same layout; no permute needed.
-- **Dense conv3d axis order.** SS decoder uses PyTorch `Conv3d` weight layout `(Co, Ci, Kd, Kh, Kw)`; MLX expects channels-last `(Co, Kd, Kh, Kw, Ci)`. The converter permutes dense (non-sparse) conv kernels.
-- **qk_rms_norm gamma shape.** `(num_heads, head_dim)` per-head RMSNorm; initialized to 1, unchanged by conversion but called out because it's uncommon.
-
-Every converted file has a sibling `*.bijection.json` recording `{mlx_name: original_torch_name}` for each tensor, for traceability.
+- **DiT Sequential indexing.** Torch `nn.Sequential` indexes children directly (`mlp.0.weight`); MLX stores them under `.layers[i]` (`mlp.layers.0.weight`). A regex rewrites `mlp.<N>`, `adaLN_modulation.<N>`, `middle_block.<N>`, `out_layer.<N>`.
+- **Dense Conv3d axis order.** Torch `Conv3d` weights are `(Co, Ci, Kd, Kh, Kw)`; MLX expects channels-last `(Co, Kd, Kh, Kw, Ci)`. Detected by shape pattern (sparse conv weights upstream are already in MLX layout — no permute).
+- **bf16 dtype handling.** Numpy can't represent bf16, so bf16 tensors round-trip through fp32 during the torch → MLX hand-off, then cast back to `mx.bfloat16`. ~50s on first load; first-call only since Metal caches the loaded weights.
 
 ---
 
@@ -403,7 +392,7 @@ Checks:
 
 ## Provenance & license
 
-This is a faithful port — no re-training, no distillation. All weights are derived from `microsoft/TRELLIS.2-4B` under the upstream MIT license. This port, the conversion scripts, and the MLX modules are released under the same MIT license.
+This is a faithful port — no re-training, no distillation. All weights are loaded directly from `microsoft/TRELLIS.2-4B` (and the SS decoder from `microsoft/TRELLIS-image-large`) under the upstream MIT license. This port and the MLX modules are released under the same MIT license.
 
 Upstream authors: Jianfeng Xiang, Xiaoxue Chen, Sicheng Xu, Ruicheng Wang, Zelong Lv, Yu Deng, Hongyuan Zhu, Yue Dong, Hao Zhao, Nicholas Jing Yuan, Jiaolong Yang.
 

@@ -3,13 +3,18 @@ upstream/
 upstream-trellis1/
 ext/
 
-# Downloaded torch weights (reproducible via hf download)
-weights/
+# Downloaded model weights — fetched by `python scripts/setup.py`.
+# pipeline.json is committed; everything else is downloaded.
+weights/ckpts/
+weights/.cache/
+weights/.gitattributes
+weights/README.md
+weights/texturing_pipeline.json
 weights-trellis1/
 
-# Large converted weights — managed by HF Hub + git-lfs separately
-ckpts/*.safetensors
-ckpts/*.bijection.json
+# Pre-refactor converted MLX weights — no longer used at runtime.
+# Safe to `rm -rf ckpts/` after the load-time-conversion refactor.
+ckpts/
 
 # Generated GLBs, npz dumps, debug images — re-derivable from source
 artifacts/

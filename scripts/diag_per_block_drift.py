@@ -28,7 +28,7 @@ from trellis2_mlx.pipeline import Trellis2ImageTo3DPipelineMLX
 def main() -> int:
     print("Loading our pipeline...")
     pipe = Trellis2ImageTo3DPipelineMLX.from_pretrained(
-        ckpt_dir=ROOT / "ckpts",
+        ckpt_dir=ROOT / "weights" / "ckpts",
         pipeline_json=ROOT / "weights" / "pipeline.json",
         pipeline_type="512",
         dino_device="cpu",

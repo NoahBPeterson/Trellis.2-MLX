@@ -199,7 +199,7 @@ def main() -> int:
 
     print("\nLoading our MLX pipeline...")
     pipe = Trellis2ImageTo3DPipelineMLX.from_pretrained(
-        ckpt_dir=ROOT / "ckpts",
+        ckpt_dir=ROOT / "weights" / "ckpts",
         pipeline_json=ROOT / "weights" / "pipeline.json",
         pipeline_type=args.pipeline_type,
         dino_device="cpu",

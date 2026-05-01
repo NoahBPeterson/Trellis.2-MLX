@@ -66,7 +66,7 @@ def main() -> int:
     print(f"\nLoading our pipeline (pipeline_type={args.pipeline_type})...")
     t0 = time.time()
     pipe = Trellis2ImageTo3DPipelineMLX.from_pretrained(
-        ckpt_dir=ROOT / "ckpts",
+        ckpt_dir=ROOT / "weights" / "ckpts",
         pipeline_json=ROOT / "weights" / "pipeline.json",
         pipeline_type=args.pipeline_type,
         dino_device="cpu",      # not actually invoked, just satisfies init
