@@ -37,7 +37,7 @@ except ImportError:
         return _wrap
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True)
 def _rasterize_faces_njit(faces_uv: np.ndarray, uv_px: np.ndarray, V_uv: np.ndarray,
                           H: int, W: int):
     """Per-face barycentric rasterization, JIT-compiled. Returns
@@ -90,11 +90,16 @@ def _rasterize_faces_njit(faces_uv: np.ndarray, uv_px: np.ndarray, V_uv: np.ndar
         v0p0 = V_uv[v0, 0]; v0p1 = V_uv[v0, 1]; v0p2 = V_uv[v0, 2]
         v1p0 = V_uv[v1, 0]; v1p1 = V_uv[v1, 1]; v1p2 = V_uv[v1, 2]
         v2p0 = V_uv[v2, 0]; v2p1 = V_uv[v2, 1]; v2p2 = V_uv[v2, 2]
-        denom_pos = denom > 0.0
+        denom_pos = denom > np.float32(0.0)
+        # Match numpy's fp32 inside-test: cast pixel-center coords to float32
+        # before any arithmetic with the (also fp32) uv_px-derived edge fns.
+        # Without this `xx + 0.5` is int + Python float → fp64, and the entire
+        # e0/e1/e2 chain promotes to fp64 — flipping ~1k boundary texels.
+        half = np.float32(0.5)
         for yy in range(y_min, y_max):
-            py = yy + 0.5
+            py = np.float32(yy) + half
             for xx in range(x_min, x_max):
-                px = xx + 0.5
+                px = np.float32(xx) + half
                 e0 = (p1y - p2y) * (px - p2x) + (p2x - p1x) * (py - p2y)
                 e1 = (p2y - p0y) * (px - p2x) + (p0x - p2x) * (py - p2y)
                 e2 = denom - e0 - e1
