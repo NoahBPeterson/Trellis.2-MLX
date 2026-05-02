@@ -158,12 +158,21 @@ def unwrap(verts: np.ndarray, faces: np.ndarray, vert_attrs: np.ndarray,
     #     chart_faces[c] : faces with chart_id == c, vertex indices remapped to the chart's local space
     #     chart_verts[c] : the unique vertices used by chart_faces[c]
     #     chart_vmap[c]  : local→original vertex index map (for attr lookup later)
+    #
+    # Pre-sort faces by chart_id once instead of doing `chart_id == c` per-chart
+    # (that pattern was O(N_faces × n_charts) — for T.png 512 PBR that's
+    # 500K × 152K ≈ 76B bool-comparisons, the dominant cost of this stage).
+    # `searchsorted` over the sorted ids gives each chart's contiguous slice in O(log n).
     t0 = time.time()
     atlas = xatlas.Atlas()
     chart_vmaps = []
+    chart_order = np.argsort(chart_id, kind="stable")
+    sorted_chart_ids = chart_id[chart_order]
+    chart_starts = np.searchsorted(sorted_chart_ids, np.arange(n_charts + 1))
+    sorted_faces = faces[chart_order]
     for c in range(n_charts):
-        face_mask = chart_id == c
-        sub_faces = faces[face_mask]
+        s, e = chart_starts[c], chart_starts[c + 1]
+        sub_faces = sorted_faces[s:e]
         used_verts, local_faces = np.unique(sub_faces.reshape(-1), return_inverse=True)
         local_faces = local_faces.reshape(-1, 3).astype(np.uint32)
         sub_verts = verts[used_verts].astype(np.float32)
