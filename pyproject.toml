@@ -21,6 +21,7 @@ postprocess = [
     "xatlas>=0.0.9",
     "scipy>=1.11",
     "fast-simplification>=0.1",   # backend for trimesh.simplify_quadric_decimation
+    "numba>=0.65.1",
 ]
 image-cond = [
     "transformers>=4.50",
