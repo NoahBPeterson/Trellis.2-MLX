@@ -476,27 +476,33 @@ def bake_atlas_bvh(
     print(f"      bake_bvh: built KDTree on {len(centroids)} original faces in {time.time()-t0:.1f}s", flush=True)
 
     # 3. K-nearest centroids per query, then exact closest-point-on-triangle for those K.
+    # Per-chunk work: tree.query (cKDTree, releases GIL) + closest-point-on-triangle
+    # (numpy, releases GIL). Each chunk writes to a non-overlapping slice of
+    # `best_face` / `best_bary`, so threading across chunks is data-race-safe.
     t0 = time.time()
-    # Process in chunks to keep peak memory bounded.
+    from concurrent.futures import ThreadPoolExecutor
     chunk = 200_000
     best_face = np.empty(len(P), dtype=np.int64)
     best_bary = np.empty((len(P), 3), dtype=np.float32)
-    for start in range(0, len(P), chunk):
-        end = min(start + chunk, len(P))
-        Pc = P[start:end]
+    chunks = [(s, min(s + chunk, len(P))) for s in range(0, len(P), chunk)]
+
+    def _project(rng):
+        s, e = rng
+        Pc = P[s:e]
         _, knn = tree.query(Pc, k=knn_candidates)  # (n, K)
-        # Expand to (n*K, 3) for vectorized closest-point-on-triangle.
         flat_q = np.repeat(Pc, knn_candidates, axis=0)
         flat_face = knn.reshape(-1)
         tri = V_orig[F_orig[flat_face]]  # (n*K, 3, 3)
         _, bary, d2 = _closest_point_on_triangle_batch(flat_q, tri[:, 0], tri[:, 1], tri[:, 2])
-        d2 = d2.reshape(end - start, knn_candidates)
-        bary = bary.reshape(end - start, knn_candidates, 3)
-        knn_re = knn  # (n, K)
-        best_idx = np.argmin(d2, axis=1)  # (n,)
-        rows = np.arange(end - start)
-        best_face[start:end] = knn_re[rows, best_idx]
-        best_bary[start:end] = bary[rows, best_idx]
+        d2 = d2.reshape(e - s, knn_candidates)
+        bary = bary.reshape(e - s, knn_candidates, 3)
+        best_idx = np.argmin(d2, axis=1)
+        rows = np.arange(e - s)
+        best_face[s:e] = knn[rows, best_idx]
+        best_bary[s:e] = bary[rows, best_idx]
+
+    with ThreadPoolExecutor(max_workers=min(4, len(chunks))) as ex:
+        list(ex.map(_project, chunks))
     print(f"      bake_bvh: BVH-projected {len(P)} texels in {time.time()-t0:.1f}s", flush=True)
 
     # 4. Interpolate original vertex_attrs.
@@ -523,8 +529,13 @@ def inpaint_atlas(atlas: np.ndarray, coverage: np.ndarray,
 
     `atlas` is float32 in [0, 1] with channel layout
     `[R, G, B, metallic, roughness, alpha]`. Returns a same-shape array.
+
+    The 4 inpaint calls (RGB + 3 scalars) are independent and cv2 releases
+    the GIL, so we run them concurrently — wall-clock drops to the cost of
+    the slowest (RGB at radius 3) instead of the sum.
     """
     import cv2
+    from concurrent.futures import ThreadPoolExecutor
 
     H, W, C = atlas.shape
     assert C == 6, f"inpaint_atlas expects 6-channel atlas, got {C}"
@@ -533,10 +544,19 @@ def inpaint_atlas(atlas: np.ndarray, coverage: np.ndarray,
         return atlas
 
     u8 = (atlas * 255.0).clip(0, 255).astype(np.uint8)
-    bc = cv2.inpaint(u8[:, :, :3], mask_inv, base_color_radius, cv2.INPAINT_TELEA)
-    m  = cv2.inpaint(u8[:, :, 3],  mask_inv, scalar_radius, cv2.INPAINT_TELEA)
-    r  = cv2.inpaint(u8[:, :, 4],  mask_inv, scalar_radius, cv2.INPAINT_TELEA)
-    a  = cv2.inpaint(u8[:, :, 5],  mask_inv, scalar_radius, cv2.INPAINT_TELEA)
+    tasks = [
+        (u8[:, :, :3].copy(),    base_color_radius),  # base-color RGB (3-channel)
+        (u8[:, :, 3].copy(),     scalar_radius),      # metallic
+        (u8[:, :, 4].copy(),     scalar_radius),      # roughness
+        (u8[:, :, 5].copy(),     scalar_radius),      # alpha
+    ]
+
+    def _inp(arg):
+        chan, radius = arg
+        return cv2.inpaint(chan, mask_inv, radius, cv2.INPAINT_TELEA)
+
+    with ThreadPoolExecutor(max_workers=4) as ex:
+        bc, m, r, a = list(ex.map(_inp, tasks))
     out = np.empty_like(u8)
     out[:, :, :3] = bc
     out[:, :, 3] = m
