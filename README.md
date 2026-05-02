@@ -162,13 +162,15 @@ Measured on a reference Apple Silicon MacBook running `scripts/run_example.py` o
 | Stage                               | Time   |
 | ----------------------------------- | -----: |
 | Preprocess (alpha-crop, premul)     |   0.1s |
-| DINOv3 image conditioning (torch)   |   4.4s |
-| SS flow (dense DiT) + decoder       | 263.3s |
-| Shape SLat flow (sparse DiT)        | 120.5s |
-| Shape VAE decode + dual-grid mesh   |  21.7s |
-| **Total**                           | **~410s** |
+| DINOv3 image conditioning (torch)   |   5.0s |
+| SS flow (dense DiT) + decoder       | 123.6s |
+| Shape SLat flow (sparse DiT)        |  97.5s |
+| Shape VAE decode + dual-grid mesh   |  24.7s |
+| **Total**                           | **~4m11s** |
 
 Mesh output: 1,730,326 verts / 3,701,394 faces.
+
+The SS flow and Shape SLat numbers reflect the cross-attn KV cache (cond projections amortized across the 12 sampler steps); see [Performance history](#performance-history) for the path from 410s → 251s.
 
 ### `pipeline_type="1024"`
 
@@ -201,23 +203,35 @@ Mesh output: 6,946,823 verts / 14,091,496 faces. ~7% faster than direct `1024` b
 | Stage                                       | Time   |
 | ------------------------------------------- | -----: |
 | Preprocess                                  |   0.1s |
-| DINOv3 image conditioning                   |   3.2s |
-| SS flow (dense DiT) + decoder               | 127.5s |
-| Shape SLat flow (sparse DiT)                | 112.6s |
-| Shape VAE decode + dual-grid mesh           |  24.0s |
-| Tex SLat flow (sparse DiT)                  |  65.8s |
-| Tex VAE decode → per-vertex PBR             |  19.6s |
-| **Sampling + decode subtotal**              | **~5m53s** |
-| Decimate (3.4M → 500k faces)                |   3.7s |
-| UV unwrap (cone-cluster + per-chart xatlas) | 206.7s |
-| Atlas bake (BVH per-texel, 2k atlas)        |  62.2s |
-| GLB write                                   |   1.3s |
-| **Post-processing subtotal**                | **~4m34s** |
-| **Total**                                   | **~10m27s** |
+| DINOv3 image conditioning                   |   5.0s |
+| SS flow (dense DiT) + decoder               | 123.6s |
+| Shape SLat flow (sparse DiT)                |  97.5s |
+| Shape VAE decode + dual-grid mesh           |  24.7s |
+| Tex SLat flow (sparse DiT)                  |  62.8s |
+| Tex VAE decode → per-vertex PBR             |  21.2s |
+| **Sampling + decode subtotal**              | **~5m34s** |
+| Decimate (3.7M → 500k faces)                |   3.3s |
+| UV unwrap (cone-cluster + per-chart xatlas) |  34.4s |
+| Atlas bake (BVH per-texel, 2k atlas)        |  23.4s |
+| GLB write                                   |   1.2s |
+| **Post-processing subtotal**                | **~1m02s** |
+| **Total**                                   | **~7m01s** |
 
-Output: 1.7M-vert dual-grid mesh decimated to 500k faces; 2048×2048 atlas with base-color RGBA + metallic-roughness; ~32 MB GLB.
+Output: 1.7M-vert dual-grid mesh decimated to 500k faces (844,279 unique verts after UV seam splits); 2048×2048 atlas with base-color RGBA + metallic-roughness; ~32 MB GLB.
 
-UV unwrap is the largest single line item — most of it is the per-chart xatlas calls inside cone-cluster (~150k charts on the steampunk T-shape). For applications that don't need texture atlases, `--vertex-colors` skips post-processing entirely (write 1.3s) and shipping the per-vertex PBR directly.
+Sampling is now the dominant cost (~80% of total). For applications that don't need texture atlases, `--vertex-colors` skips post-processing entirely (just GLB write at 1.2s) and ships the per-vertex PBR directly.
+
+#### Performance history (T.png 512 PBR, M-series MacBook)
+
+| Date       | Optimization                                       | Wall-clock |
+| ---------- | -------------------------------------------------- | ---------: |
+| 2026-04-30 | First end-to-end PBR (`5382214`, Phase 6C-F)       | ~10m27s    |
+| 2026-05-01 | Cross-attn KV cache (`78e3796`)                    | ~10m51s\* → 8m51s |
+| 2026-05-01 | UV unwrap loop O(N×n_charts) → O(N log N) (`3794562`) | ~7m45s |
+| 2026-05-01 | Threaded inpaint + BVH project chunks (`5326e13`)  | ~7m08s     |
+| 2026-05-02 | Numba-JIT rasterize (`b86b08d` + fp32 fix `b6209a2`) | **~7m01s** |
+
+\* Pre-cache figure was measured on battery; pre-cache on AC was closer to 9m. The KV cache itself contributed −18% sampling time. Each subsequent commit is byte-identical to the prior one (verified via `shasum -a 256` on the output GLB) — only `b86b08d` briefly broke that, fixed in `b6209a2`.
 
 ### `pipeline_type="1024"` + full PBR + UV atlas
 
@@ -262,6 +276,37 @@ Apple's Metal SDPA and matmul kernels run ~1.3× faster on fp16 inputs than on b
 Essentially lossless. Off by default for strict numerical parity with upstream; opt in via the CLI flag or `dit_compute_dtype="float16"` to `from_pretrained`.
 
 For comparison, upstream on an NVIDIA H100 reports ~3s at 512³ and ~17s at 1024³. We are not trying to match that; the objective is "works on a MacBook."
+
+---
+
+## Competitive landscape
+
+Two other Apple Silicon ports of TRELLIS.2 exist in the wild. Each takes a different strategy:
+
+- **[`shivampkumar/trellis-mac`](https://github.com/shivampkumar/trellis-mac)** (360★) — PyTorch + MPS, the most popular port. Reuses upstream model code unchanged; the work is in working around MPS gaps and replacing CUDA-only kernels with a Metal-accelerated baker (or a slower KDTree fallback if Xcode's Metal Toolchain isn't installed).
+- **[`pedronaugusto/trellis2-apple`](https://github.com/pedronaugusto/trellis2-apple)** (12★) — hybrid MLX + four custom Metal C++ packages (`mtldiffrast`, `mtlmesh`, `mtlbvh`, `mtlgemm`/`flex_gemm`) + PyTorch+MPS at the mesh boundary.
+
+Benchmarked head-to-head on M1 Pro 16 GB, T.png, seed=42, `pipeline_type="512"` to a textured GLB:
+
+| | trellis-mlx (this) | trellis-mac | trellis2-apple |
+| :--- | :---: | :---: | :---: |
+| Strategy | pure MLX + Python | PyTorch + MPS | MLX + 4 Metal C++ libs |
+| SS flow + decoder (M1 Pro) | 263s | 219s¹ | **139s** (–47% vs ours) |
+| Shape SLat (M1 Pro) | 121s | 150s¹ | 117s |
+| **Total → textured GLB (M1 Pro)** | ~600s | not directly measured² | **~410s** |
+| Out-of-the-box on M1/M2 | ✅ | ⚠️ (atlas/axes broken before our PRs)³ | ❌ (Metal float-atomic crash)⁴ |
+| Default GLB renders correctly | ✅ | ⚠️ | ❌ (alphaMode=BLEND bug)⁵ |
+| Native deps to maintain | none | xatlas + optional Metal baker | 4 Metal C++ repos |
+
+<small>
+¹ trellis-mac M1 Pro numbers from a `--no-texture` run; tex SLat omitted. Their README quotes ~5 min 13s end-to-end on **M4 Pro** which is a much faster chip.<br>
+² Their `T_mac_pbr.glb` was not a usable visual reference on M1 Pro until our recent upstream PRs (May 2026) — atlas was mostly empty, axes swapped.<br>
+³ We filed 5 upstream PRs to trellis-mac that close the visual-quality gap on M1/M2; pre-PR the bake produces unusable GLBs on Apple7/8.<br>
+⁴ Their `mtlmesh` decimator uses `atomic_min&lt;float&gt;` (Apple GPU family 9, M3+ only). Requires <a href="https://github.com/pedronaugusto/mtlmesh/pull/1"><code>NoahBPeterson/mtlmesh#1</code></a>, unmerged.<br>
+⁵ <code>o_voxel/postprocess.py:374-381</code> flips material to <code>alphaMode='BLEND'</code> if any single masked alpha pixel is &lt; 250, causing render artifacts on hollow geometry. This port hardcodes <code>OPAQUE</code> and dodges the bug.
+</small>
+
+**The honest read:** trellis2-apple's `flex_gemm_sparse_attn` kernel materially beats pure-MLX sparse attention on M1 — that's a real ~190s end-to-end win when their stack builds, which on M1/M2 it currently doesn't without our patch. trellis-mac is the most popular and the easiest entry point, but its M1/M2 bake path needs our PRs to produce a usable GLB. This port trades raw kernel speed for a smaller surface area: pure MLX + Python, no Metal toolchain required, GLB renders correctly out of the box.
 
 ---
 
@@ -365,6 +410,21 @@ Checks:
 - `tests/test_sparse_conv.py`, `tests/test_sparse_vs_dense.py` — submanifold-conv correctness. The `vs_dense` variant cross-checks against a dense torch `Conv3d` and was the authoritative test that caught the first-pass kernel axis-ordering bug.
 - `tests/test_dual_grid.py` — dual-grid mesh extraction fixture parity.
 - `tests/test_rope.py`, `tests/test_norm.py`, `tests/test_sampler.py` — module-level unit tests.
+
+### GLB byte-identicality
+
+Optimization commits in this repo are validated by computing `shasum -a 256` on the output GLB and comparing against a known-good baseline. Summary stats (vert count, RGB mean, etc.) are *insufficient* — they aggregate across millions of pixels and can mask sub-pixel divergences that change the file at the byte level.
+
+```bash
+# Run a fresh pipeline and hash the output.
+python scripts/run_example_pbr.py --image assets/T.png --out artifacts/sample_pbr.glb --pipeline-type 512
+shasum -a 256 artifacts/sample_pbr.glb
+
+# Reference: T.png 512 PBR with `dit_compute_dtype="bfloat16"`, seed=42:
+# af78d41f91b704be1a4d2429c24a0ecf601f9f0190e4c29cd550c835b4db34fb
+```
+
+When a hash mismatches, drill in via [`scripts/diff_intermediates.py`](./scripts/diff_intermediates.py) or by loading both GLBs in trimesh and diffing the vertex / UV / atlas-pixel arrays directly. A real example: commit `b86b08d` (numba rasterize) shifted ~1140 atlas pixels by up to 9/255 because `xx + 0.5` promoted to fp64 in the JIT path. The summary stats all matched; only the `shasum` mismatch caught it. Fixed in `b6209a2` by forcing `np.float32(xx) + np.float32(0.5)` to keep the inside-test in fp32.
 
 ---
 
