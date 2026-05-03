@@ -16,6 +16,10 @@ weights-trellis1/
 # Safe to `rm -rf ckpts/` after the load-time-conversion refactor.
 ckpts/
 
+# Browser-port subproject lives at this path but is its own git repo.
+# Don't track it from the parent.
+trellis-onnx/
+
 # Generated GLBs, npz dumps, debug images — re-derivable from source
 artifacts/
 
